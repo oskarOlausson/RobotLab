@@ -92,6 +92,11 @@ def getLaserAngles():
     else:
         raise UnexpectedResponse(response)
 
+def getPosition():
+    data = getPose()
+    x = data['Pose']['Position']['X']
+    y = data['Pose']['Position']['Y']
+    return x,y
 
 def getPose():
     """Reads the current position and orientation from the MRDS"""
