@@ -38,12 +38,13 @@ def getSpeed():
     response = mrds.getresponse()
     if (response.status == 200):
         allData = response.read()
-        angularSpeed=allData["CurrentAngularSpeed"]
+        angularSpeed = allData["CurrentAngularSpeed"]
         linearSpeed = allData["CurrentLinearSpeed"]
         response.close()
-        return angularSpeed,linearSpeed
+        return angularSpeed, linearSpeed
     else:
         return response
+
 
 def getLaser():
     """Requests the current laser scan from the MRDS server and parses it into a dict"""
@@ -56,6 +57,7 @@ def getLaser():
         return json.loads(laserData)
     else:
         return response
+
 
 def getLaserProperties():
     """Requests the current laser scan from the MRDS server and parses it into a dict"""
@@ -165,10 +167,10 @@ if __name__ == '__main__':
         laser = getLaser()
         laserAngles = getLaserAngles()
         print 'The rightmost laser beam has angle %.3f deg from x-axis (straight forward) and distance %.3f meters.' % (
-            laserAngles[0]*180/pi, laser['Echoes'][0]
+            laserAngles[0] * 180 / pi, laser['Echoes'][0]
         )
         print 'Beam 1: %.3f Beam 269: %.3f Beam 270: %.3f' % (
-        laserAngles[0] * 180 / pi, laserAngles[269] * 180 / pi, laserAngles[270] * 180 / pi)
+            laserAngles[0] * 180 / pi, laserAngles[269] * 180 / pi, laserAngles[270] * 180 / pi)
     except UnexpectedResponse, ex:
         print 'Unexpected response from server when reading laser data:', ex
 
