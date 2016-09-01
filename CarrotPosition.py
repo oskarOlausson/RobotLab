@@ -10,26 +10,24 @@ def load(fileString):
 
 #Converts from radians to degrees
 def radToDeg(rad):
-    return rad * ( 180 /pi)
+    return rad * (180 /pi)
 
 #converts drom degrees to radians
 def degToRad(deg):
-    return deg * ( pi /180)
+    return deg * (pi /180)
 
 #takes an angle (in degrees) and returns the laser that points in that direction
 #...hopefully (in the test it seems to work
 def degToLaser(deg):
     laserData = RobotControl.getLaser()
-    unitVector = RobotControl.getBearing()
-    ux=unitVector['X']
-    uy=unitVector['Y']
-    robotAngle = radToDeg(atan2(uy ,ux))
+    robotAngle=RobotControl.robotAngle()
     # print "current angle being investigatet is %.3f" % deg
     #print "robotAngle is %.3f" % robotAngle
     # there is a 45 degrees difference between the laser and the degrees
-    laserAngle = int( deg + 45 -robotAngle)
+    laserAngle = int(round(deg+135-robotAngle))
     #print "robotlaser chosen is %.3f" % laserAngle
-    return laserData['Echoes'][laserAngle]
+    #return laserData['Echoes'][laserAngle]
+    return laserAngle
 
 def distanceToPoint(x,y,goalx,goaly):
     return sqrt((goalx-x) ** 2 + ( goaly-y) ** 2 )
@@ -62,9 +60,22 @@ if __name__ == '__main__':
     x,y = RobotControl.getPosition()
     step = 10
 
+
     #creates an array that will fit all readings
     canSeeList = [False] * int (len(data)/step)
 
+    direction = angleToPoint(0,0,9,4)
+    laserNr = degToLaser(direction)
+    laserAngles = RobotControl.getLaserAngles()
+    facit = laserAngles[laserNr] * (180 / pi)
+
+
+
+    print "own direction: %.3f"
+    print "direction to point: %.3f" % direction
+    print "direction laser %.3f" % laserNr
+    print "direction of that laser: %.3f" % facit
+    """"
     print "My position is point(%.3f,%.3f)" % (x,y)
 
     for i in range(0, (int(len(data)/step)) - 1):
@@ -79,7 +90,7 @@ if __name__ == '__main__':
             #print "The robot can see point(%.3f, %.3f), distance to point is: %.3f"   % (goalx,goaly,distanceToPoint(x,y,goalx,goaly))
         else:
             print "The robot can't see point(%.3f, %.3f), distance to point is: %.3f " % (goalx,goaly,distanceToPoint(x,y,goalx,goaly))
-
+    """
 
 
 
