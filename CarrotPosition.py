@@ -38,9 +38,9 @@ def straightLength(length,direction):
 def angleToPoint(x,y,goalx,goaly):
     return radToDeg(atan2(goaly-y, goalx-x))
 
-#looks for a point and sees if the laser can look that far
-#if it can't, there is a wall in the way
-#returns a bool, canSee
+"""looks for a point and sees if the laser can look that far
+if it can't, there is a wall in the way
+returns a bool, canSee"""
 def robotCanSee(x,y,goalx ,goaly):
     angle = angleToPoint(x,y,goalx,goaly)
     laserLength=degToLaser(angle)
