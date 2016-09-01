@@ -1,5 +1,5 @@
 
-import json, RobotControl
+import json, RobotControl, time
 from math import sin, cos, pi, atan2, sqrt
 
 
@@ -16,11 +16,15 @@ def radToDeg(rad):
 def degToRad(deg):
     return deg * (pi /180)
 
+def position(index):
+    return data[index]['Pose']['Position']['X'],data[index]['Pose']['Position']['Y']
+
+
 #takes an angle (in degrees) and returns the laser that points in that direction
 #...hopefully (in the test it seems to work
 def degToLaser(deg):
     laserData = RobotControl.getLaser()
-    robotAngle=RobotControl.robotAngle()
+    robotAngle=RobotControl.getRobotAngle()
     # print "current angle being investigatet is %.3f" % deg
     #print "robotAngle is %.3f" % robotAngle
     # there is a 45 degrees difference between the laser and the degrees
@@ -47,7 +51,18 @@ def robotCanSee(x,y,goalx ,goaly):
     print "laserLength: %.3f, length: %.3f, laserangle: %.3f" % (laserLength,distanceToPoint(x,y,goalx,goaly),angle)
     return laserLength>distanceToPoint(x,y,goalx,goaly)
 
+def choosePoint(x,y,lookAhead,currentIndex):
+    goalx,goaly=position(currentIndex)
+    keepSwimming=True
 
+    while keepSwimming:
+        currentIndex+=1
+        if distanceToPoint(x, y, *position(currentIndex))<lookAhead:
+            goalx, goaly = position(currentIndex)
+        else:
+            keepSwimming=False
+
+    return goalx,goaly
 
 if __name__ == '__main__':
     data = load("Path-to-bed.json")
@@ -59,22 +74,23 @@ if __name__ == '__main__':
 
     x,y = RobotControl.getPosition()
     step = 10
+    currentIndex=0;
+    lookAhead = 1
 
 
-    #creates an array that will fit all readings
-    canSeeList = [False] * int (len(data)/step)
+    while(True):
+        goalx,goaly=choosePoint(x,y,lookAhead,currentIndex)
+        print "Chose point"
 
-    direction = angleToPoint(0,0,9,4)
-    laserNr = degToLaser(direction)
-    laserAngles = RobotControl.getLaserAngles()
-    facit = laserAngles[laserNr] * (180 / pi)
-
-
-
-    print "own direction: %.3f"
-    print "direction to point: %.3f" % direction
-    print "direction laser %.3f" % laserNr
-    print "direction of that laser: %.3f" % facit
+        direction = angleToPoint(0, 0, goalx, goaly)
+        laserNr = degToLaser(direction)
+        laserAngles = RobotControl.getLaserAngles()
+        facit = laserAngles[laserNr] * (180 / pi)
+        print "did the rotation"
+        if (facit>0):
+            RobotControl.postSpeed(.5,.1)
+        else:
+            RobotControl.postSpeed(-.5,.1)
     """"
     print "My position is point(%.3f,%.3f)" % (x,y)
 

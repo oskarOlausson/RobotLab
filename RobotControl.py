@@ -154,8 +154,23 @@ def getBearing():
     """Returns the XY Orientation as a bearing unit vector"""
     return bearing(getPose()['Pose']['Orientation'])
 
+"""returns what direction the robot should turn,
+returns -1 for clockwise, 1 for counter-clockwise"""
+def turnDirection(currentAngle, goalAngle):
+    if currentAngle<goalAngle:
+        if currentAngle+180>goalAngle:
+            return 1
+        else:
+            return -1
+    else:
+        if currentAngle-180<goalAngle:
+            return -1
+        else:
+            return 1
+
+
 #the bearing of the robot in degrees
-def robotAngle():
+def getRobotAngle():
     unitVector = getBearing()
     ux=unitVector['X']
     uy=unitVector['Y']
