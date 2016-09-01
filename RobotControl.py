@@ -154,6 +154,13 @@ def getBearing():
     """Returns the XY Orientation as a bearing unit vector"""
     return bearing(getPose()['Pose']['Orientation'])
 
+#the bearing of the robot in degrees
+def robotAngle():
+    unitVector = getBearing()
+    ux=unitVector['X']
+    uy=unitVector['Y']
+    return (atan2(uy ,ux))*(180/pi)
+
 
 if __name__ == '__main__':
     print 'Sending commands to MRDS server', MRDS_URL
