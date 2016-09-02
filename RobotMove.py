@@ -29,8 +29,7 @@ def turnDirection(currentAngle, goalAngle):
         else:
             return 1
 
-def robotCanSee(goalx ,goaly):
-    x,y=RobotState.getPosition()
+def robotCanSee(x,y,goalx ,goaly):
     angle = Trig.angleToPoint(x,y,goalx,goaly)
     laserLength=Trig.degToLaser(angle)
     #print "laserLength: %.3f, length: %.3f, laserangle: %.3f" % (laserLength,Trig.distanceToPoint(x,y,goalx,goaly),angle)
@@ -41,8 +40,11 @@ def choosePoint(x,y,lookAhead,currentIndex):
     keepSwimming=True
 
     while keepSwimming:
-        currentIndex+=1
-        if Trig.distanceToPoint(x, y, *Path.position(currentIndex))<lookAhead:
+        currentIndex=min(currentIndex+1,Path.length()-1)
+        gx,gy = Path.position(currentIndex)
+        distance = Trig.distanceToPoint(x, y, gx, gy)
+
+        if distance<lookAhead and robotCanSee(x,y,gx,gy):
             goalx, goaly = Path.position(currentIndex)
         else:
             keepSwimming=False
@@ -70,18 +72,14 @@ if __name__ == '__main__':
 
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
 
-        if (not robotCanSee(goalx,goaly)):
-            if (pgoalx != goalx or pgoaly != goaly):
-                print "Could not see the point (of this):   %.3f, %.3f" % (goalx,goaly)
-        else:
-            if (pgoalx!=goalx or pgoaly!=goaly):
-                print "Hey! I found a point, lets go there: %.3f, %.3f" % (goalx, goaly)
+        if (pgoalx!=goalx or pgoaly!=goaly):
+            print "Hey! I found a point, lets go there: %.3f, %.3f" % (goalx, goaly)
 
-            if (Trig.angleDifference(direction,goalAngle)>5):
-                turn = turnDirection(direction, goalAngle)
-                postSpeed(turn*0.5,0)
-            else:
-                postSpeed(0,1)
+        if (Trig.angleDifference(direction,goalAngle)>10):
+            turn = turnDirection(direction, goalAngle)
+            postSpeed(turn*0.25,0)
+        else:
+            postSpeed(0,.5)
 
             time.sleep(.1)
 

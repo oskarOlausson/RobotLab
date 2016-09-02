@@ -14,6 +14,9 @@ def load(fileString):
 def position(index):
     return path[index]['Pose']['Position']['X'],path[index]['Pose']['Position']['Y']
 
+def length():
+    return len(path)
+
 def choosePoint(x,y,lookAhead,currentIndex):
     goalx,goaly=position(currentIndex)
     keepSwimming=True
