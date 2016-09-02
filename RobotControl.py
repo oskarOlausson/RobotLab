@@ -92,12 +92,6 @@ def getLaserAngles():
     else:
         raise UnexpectedResponse(response)
 
-def getPosition():
-    data = getPose()
-    x = data['Pose']['Position']['X']
-    y = data['Pose']['Position']['Y']
-    return x,y
-
 def getPose():
     """Reads the current position and orientation from the MRDS"""
     mrds = httplib.HTTPConnection(MRDS_URL)
@@ -153,28 +147,6 @@ def qmult(q1, q2):
 def getBearing():
     """Returns the XY Orientation as a bearing unit vector"""
     return bearing(getPose()['Pose']['Orientation'])
-
-"""returns what direction the robot should turn,
-returns -1 for clockwise, 1 for counter-clockwise"""
-def turnDirection(currentAngle, goalAngle):
-    if currentAngle<goalAngle:
-        if currentAngle+180>goalAngle:
-            return 1
-        else:
-            return -1
-    else:
-        if currentAngle-180<goalAngle:
-            return -1
-        else:
-            return 1
-
-
-#the bearing of the robot in degrees
-def getRobotAngle():
-    unitVector = getBearing()
-    ux=unitVector['X']
-    uy=unitVector['Y']
-    return (atan2(uy ,ux))*(180/pi)
 
 
 if __name__ == '__main__':
