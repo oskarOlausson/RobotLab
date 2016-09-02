@@ -64,8 +64,8 @@ if __name__ == '__main__':
         x, y = RobotState.getPosition()
         direction = RobotState.getDirection()
         #previous position for goal
-        pgoalx, pgoaly = goalx, goaly
-        currentIndex=choosePoint(x, y, lookAhead, currentIndex)
+        pgoalx, pgoaly = goalx,goaly
+        currentIndex=choosePoint(x,y, lookAhead, currentIndex)
         goalx, goaly = Path.position(currentIndex)
 
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
