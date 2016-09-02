@@ -46,6 +46,7 @@ workspace.xml
 Network Trash Folder
 Temporary Items
 .apdisk
+.idea/
 .idea/workspace.xml
 .idea/RobotLab.iml
 .idea/misc.xml
