@@ -3,15 +3,6 @@ File handles Robot movements and maths about it.
 """
 
 
-""" + moveToCoord(XPoint, YPoint)
-    while(inget är ivägen)
-        1: Hitta punkten som man ska sikta på.
-        2: snurra eller kör + sväng
-    end
-
-    """
-
-
 #forward
 #forwardSpeed(M/s^2)
 
@@ -20,8 +11,9 @@ File handles Robot movements and maths about it.
 #turn right(target angle)
 #turn left(target angle)
 #turn speed(M/s^2)
-
+import time
 import Trig,Path,RobotState
+from Postman import postSpeed
 
 """returns what direction the robot should turn,
 returns -1 for clockwise, 1 for counter-clockwise"""
@@ -41,7 +33,7 @@ def robotCanSee(goalx ,goaly):
     x,y=RobotState.getPosition()
     angle = Trig.angleToPoint(x,y,goalx,goaly)
     laserLength=Trig.degToLaser(angle)
-    print "laserLength: %.3f, length: %.3f, laserangle: %.3f" % (laserLength,Trig.distanceToPoint(x,y,goalx,goaly),angle)
+    #print "laserLength: %.3f, length: %.3f, laserangle: %.3f" % (laserLength,Trig.distanceToPoint(x,y,goalx,goaly),angle)
     return laserLength>Trig.distanceToPoint(x,y,goalx,goaly)
 
 def choosePoint(x,y,lookAhead,currentIndex):
@@ -60,16 +52,28 @@ def choosePoint(x,y,lookAhead,currentIndex):
 if __name__ == '__main__':
     path = Path.load('Path-to-bed.json')
     currentIndex=0
-    x,y=RobotState.getPosition()
+
     #looks one meter ahead
     lookAhead=1
-    goalx,goaly=choosePoint(x,y,lookAhead,0)
 
-    if (not robotCanSee(goalx,goaly)):
-        print "Could not see the point (of this)"
-    else:
-        print "Hey! I found a point, lets go there!"
-        goalAngle=Trig.angleToPoint(x,y,goalx,goaly)
-        turnDirection(RobotState.getDirection(),goalAngle)
+    x, y = RobotState.getPosition()
+    goalx,goaly=choosePoint(x,y,lookAhead,0)
+    sp=0
+    turn=0
+
+    while(True):
+        time.sleep(.1)
+        if (not robotCanSee(goalx,goaly)):
+            print "Could not see the point (of this):   %.3f, %.3f" % (goalx,goaly)
+        else:
+            if (Trig.angleDifference(angle,goalAngle)>2):
+                turn = turnDirection(direction, goalAngle)
+                postSpeed(turn*0.5,0.25)
+            print "Hey! I found a point, lets go there: %.3f, %.3f" % (goalx,goaly)
+            goalAngle=Trig.angleToPoint(x,y,goalx,goaly)
+            direction=RobotState.getDirection()
+
+            sp=0.25
+
 
 
