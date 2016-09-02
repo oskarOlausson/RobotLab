@@ -47,33 +47,43 @@ def choosePoint(x,y,lookAhead,currentIndex):
         else:
             keepSwimming=False
 
-    return goalx,goaly
+    return currentIndex
 
 if __name__ == '__main__':
     path = Path.load('Path-to-bed.json')
-    currentIndex=0
 
     #looks one meter ahead
     lookAhead=1
-
-    x, y = RobotState.getPosition()
-    goalx,goaly=choosePoint(x,y,lookAhead,0)
+    goalx,goaly=RobotState.getPosition()
+    currentIndex=0
     sp=0
     turn=0
 
     while(True):
-        time.sleep(.1)
-        if (not robotCanSee(goalx,goaly)):
-            print "Could not see the point (of this):   %.3f, %.3f" % (goalx,goaly)
-        else:
-            if (Trig.angleDifference(angle,goalAngle)>2):
-                turn = turnDirection(direction, goalAngle)
-                postSpeed(turn*0.5,0.25)
-            print "Hey! I found a point, lets go there: %.3f, %.3f" % (goalx,goaly)
-            goalAngle=Trig.angleToPoint(x,y,goalx,goaly)
-            direction=RobotState.getDirection()
 
-            sp=0.25
+        x, y = RobotState.getPosition()
+        direction = RobotState.getDirection()
+        #previous position for goal
+        pgoalx, pgoaly = goalx, goaly
+        currentIndex=choosePoint(x, y, lookAhead, currentIndex)
+        goalx, goaly = Path.position(currentIndex)
+
+        goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
+
+        if (not robotCanSee(goalx,goaly)):
+            if (pgoalx != goalx or pgoaly != goaly):
+                print "Could not see the point (of this):   %.3f, %.3f" % (goalx,goaly)
+        else:
+            if (pgoalx!=goalx or pgoaly!=goaly):
+                print "Hey! I found a point, lets go there: %.3f, %.3f" % (goalx, goaly)
+
+            if (Trig.angleDifference(direction,goalAngle)>5):
+                turn = turnDirection(direction, goalAngle)
+                postSpeed(turn*0.5,0)
+            else:
+                postSpeed(0,1)
+
+            time.sleep(.1)
 
 
 

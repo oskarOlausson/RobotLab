@@ -40,6 +40,7 @@ def angleToPoint(x,y,goalx,goaly):
 def angleDifference(angle,goalAngle):
     a = angle - goalAngle
     a = (a + 180) % 360 - 180
+    return abs(a)
 
 """looks for a point and sees if the laser can look that far
 if it can't, there is a wall in the way
