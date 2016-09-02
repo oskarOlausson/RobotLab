@@ -37,7 +37,7 @@ def distanceToPoint(x,y,goalx,goaly):
     return sqrt((goalx-x) ** 2 + ( goaly-y) ** 2 )
 
 def straightLength(length,direction):
-    return cos(degToRad(direction))*length
+    return cos(degToRad(direction))*length # vag gör denna? / mattias
 
 def angleToPoint(x,y,goalx,goaly):
     return radToDeg(atan2(goaly-y, goalx-x))
