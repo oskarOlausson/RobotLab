@@ -1,8 +1,4 @@
 """
-File that handles  json communication
-"""
-
-"""
 Example demonstrating how to communicate with Microsoft Robotic Developer
 Studio 4 via the Lokarria http interface.
 
@@ -41,9 +37,10 @@ def getSpeed():
     mrds.request('GET', '/lokarria/differentialdrive')
     response = mrds.getresponse()
     if (response.status == 200):
-        allData = response.read()
-        angularSpeed = allData["CurrentAngularSpeed"]
-        linearSpeed = allData["CurrentLinearSpeed"]
+        allData = json.loads(response.read())
+
+        angularSpeed = allData["Feedback"]["CurrentAngularSpeed"]
+        linearSpeed = allData["Feedback"]["CurrentLinearSpeed"]
         response.close()
         return angularSpeed, linearSpeed
     else:
@@ -96,12 +93,6 @@ def getLaserAngles():
     else:
         raise UnexpectedResponse(response)
 
-def getPosition():
-    data = getPose()
-    x = data['Pose']['Position']['X']
-    y = data['Pose']['Position']['Y']
-    return x,y
-
 def getPose():
     """Reads the current position and orientation from the MRDS"""
     mrds = httplib.HTTPConnection(MRDS_URL)
@@ -114,16 +105,20 @@ def getPose():
     else:
         return UnexpectedResponse(response)
 
+
 def bearing(q):
     return rotate(q, {'X': 1.0, 'Y': 0.0, "Z": 0.0})
 
+
 def rotate(q, v):
     return vector(qmult(qmult(q, quaternion(v)), conjugate(q)))
+
 
 def quaternion(v):
     q = v.copy()
     q['W'] = 0.0;
     return q
+
 
 def vector(q):
     v = {}
@@ -132,12 +127,14 @@ def vector(q):
     v["Z"] = q["Z"]
     return v
 
+
 def conjugate(q):
     qc = q.copy()
     qc["X"] = -q["X"]
     qc["Y"] = -q["Y"]
     qc["Z"] = -q["Z"]
     return qc
+
 
 def qmult(q1, q2):
     q = {}
@@ -147,9 +144,11 @@ def qmult(q1, q2):
     q["Z"] = q1["W"] * q2["Z"] + q1["X"] * q2["Y"] - q1["Y"] * q2["X"] + q1["Z"] * q2["W"]
     return q
 
+
 def getBearing():
     """Returns the XY Orientation as a bearing unit vector"""
     return bearing(getPose()['Pose']['Orientation'])
+
 
 if __name__ == '__main__':
     print 'Sending commands to MRDS server', MRDS_URL

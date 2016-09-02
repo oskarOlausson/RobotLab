@@ -3,7 +3,7 @@ File that handles trigonomics math
 """
 
 
-import RobotControl
+import Postman
 import RobotState
 from math import cos, pi, atan2, sqrt
 
@@ -18,8 +18,8 @@ def degToRad(deg):
 #takes an angle (in degrees) and returns the laser that points in that direction
 #...hopefully (in the test it seems to work
 def degToLaser(deg):
-    laserData = RobotControl.getLaser()
-    robotAngle=RobotControl.getRobotAngle()
+    laserData = Postman.getLaser()
+    robotAngle=RobotState.getDirection()
     # print "current angle being investigatet is %.3f" % deg
     #print "robotAngle is %.3f" % robotAngle
     # there is a 45 degrees difference between the laser and the degrees
@@ -28,8 +28,7 @@ def degToLaser(deg):
     #return laserData['Echoes'][laserAngle]
     return laserAngle
 
-def distanceToPoint(goalx,goaly):
-    x,y=RobotState.getPosition()
+def distanceToPoint(x,y,goalx,goaly):
     return sqrt((goalx-x) ** 2 + ( goaly-y) ** 2 )
 
 def straightLength(length,direction):
