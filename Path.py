@@ -30,5 +30,10 @@ def choosePoint(x,y,lookAhead,currentIndex):
 
     return goalx,goaly
 
-
 path = load("Path-to-bed.json")
+
+if __name__ == '__main__':
+    for i in range(0,length()):
+        xx,yy = position(i)
+        print "position is (%.3f, %.3f)" % (xx,yy)
+

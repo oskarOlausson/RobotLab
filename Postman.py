@@ -153,6 +153,7 @@ def getBearing():
 if __name__ == '__main__':
     print 'Sending commands to MRDS server', MRDS_URL
 
+    """
     try:
         print 'Telling the robot to go straight ahead.'
         response = postSpeed(0, 0.1)
@@ -162,7 +163,7 @@ if __name__ == '__main__':
         response = postSpeed(0.4, 0.1)
     except UnexpectedResponse, ex:
         print 'Unexpected response from server when sending speed commands:', ex
-
+    """
     try:
         laser = getLaser()
         laserAngles = getLaserAngles()
