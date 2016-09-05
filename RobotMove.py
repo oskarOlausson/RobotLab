@@ -35,7 +35,7 @@ def robotCanSee(x,y,goalx ,goaly):
     laserAngle=Trig.degToLaser(angle)
 
     if laserAngle<0 or laserAngle>269:
-        return False
+        return True
     else:
         #print "laserAngle %d" % laserAngle
         laserLength=getLaser()['Echoes'][laserAngle]
@@ -43,7 +43,7 @@ def robotCanSee(x,y,goalx ,goaly):
         return laserLength>Trig.distanceToPoint(x,y,goalx,goaly)
 
 def purePursuit(x,y,goalx,goaly,lookAhead):
-    linearSpeed=0.2
+    linearSpeed=0.4
 
     gamma=(2*(goaly-y))/(lookAhead**2)
     angularSpeed=linearSpeed*gamma
@@ -58,10 +58,10 @@ def robotCanGo(x,y,goalx,goaly):
     leftIndex=index
     rightIndex=index
 
-    while(leftIndex<Path.length() and laser['Echoes'][leftIndex]>dist):
+    while(leftIndex<Path.length()-1 and laser['Echoes'][leftIndex]>dist):
         leftIndex+=1
 
-    while(rightIndex>0 and laser['Echoes'][rightIndex]>dist):
+    while(rightIndex>1 and laser['Echoes'][rightIndex]>dist):
         rightIndex-=1
 
     lx,ly=Path.position(leftIndex)
@@ -82,7 +82,7 @@ def choosePoint(x,y,lookAhead,currentIndex):
         goalx,goaly = Path.position(index)
         distance = Trig.distanceToPoint(x, y, goalx, goaly)
 
-        if robotCanGo(x,y,goalx,goaly):
+        if distance<lookAhead and robotCanSee(x,y,goalx,goaly):
             currentIndex=index
             print "can see point %d, %.3f, %.3f" % (index,goalx,goaly)
         else:
@@ -97,6 +97,17 @@ def calcTurnSpeed(angle,goalAngle,timeBetween):
     return angleSpeed
 
 if __name__ == '__main__':
+    currentIndex=0
+    lookAhead = 2
+    while(True):
+        x, y = RobotState.getPosition()
+        currentIndex=choosePoint(x,y,lookAhead,currentIndex)
+        goalx,goaly=Path.position(currentIndex)
+        postSpeed(*purePursuit(x,y,goalx,goaly,lookAhead))
+        print "goalx,goaly: (%.3f, %.3f)" % (goalx,goaly)
+        time.sleep(.1)
+
+def notMain():
     #looks one meter ahead
     lookAhead=1
     goalx,goaly=RobotState.getPosition()
