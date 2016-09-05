@@ -16,6 +16,10 @@ def getDirection():
 def getSpeed():
     return Postman.getSpeed()
 
+def getWidth():
+    #in reality .4 but marginals
+    return .5;
+
 #returns x,y
 def getPosition():
     data = Postman.getPose()
