@@ -24,6 +24,8 @@ $RECYCLE.BIN/
 # OSX
 # =========================
 
+*.pyc
+
 workspace.xml
 .DS_Store
 .AppleDouble
