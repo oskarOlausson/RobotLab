@@ -144,14 +144,13 @@ def mainPure():
 
         currentIndex = choosePoint(x, y, lookAhead, currentIndex, angle)
 
-        #goalx, goaly = Path.position(currentIndex)
-        goalx,goaly=1,-2
+        goalx, goaly = Path.position(currentIndex)
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
 
         angularSpeed, linearSpeed = purePursuit(x, y, goalx, goaly, angle)
 
         postSpeed(angularSpeed, linearSpeed)
-        time.clock(1/10)
+        time.sleep(1/10)
 
 def mainRotAndDrive():
     #looks one meter ahead
