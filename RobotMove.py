@@ -52,27 +52,18 @@ def purePursuit(x,y,goalx,goaly,angle):
     #xprim = cos(Trig.degToRad(vb)) * dist
     yprim = sin(Trig.degToRad(vb))*dist
 
-    #d=((yprim**2)-(xprim**2))/(2*yprim)
-
-    l=(Trig.distanceToPoint(x,y,goalx,goaly))
-
-    print "yprim: %.3f" % yprim
-
     #constant
-    gammay= (2 * yprim) / (l**2)
+    gammay= (2 * yprim) / (dist**2)
 
-    keepOn=True
+    #angularSpeed = linearSpeed * gammay
+    _,lin=RobotState.getSpeed()
+    angularSpeed = gammay * lin
 
-    angularSpeed = linearSpeed * gammay
-    """
-    print "angularSpeed: %.5f" % angularSpeed
-
-    while((angularSpeed<=-2 or angularSpeed>=2) and linearSpeed>=.5):
+    while((angularSpeed<=-2 or angularSpeed>=2) and linearSpeed>.5):
         linearSpeed-=0.5
         angularSpeed= linearSpeed * gammay
+        exit(19)
 
-    if linearSpeed==0: angularSpeed=1
-    """
 
     return angularSpeed,linearSpeed
 
@@ -121,7 +112,7 @@ def choosePoint(x,y,lookAhead,currentIndex,angle):
         goalx,goaly = Path.position(index)
         distance = Trig.distanceToPoint(x, y, goalx, goaly)
 
-        if distance<lookAhead:#and robotCanSee(x,y,goalx,goaly,angle):
+        if distance<lookAhead and robotCanGo(x,y,goalx,goaly,angle):
             currentIndex=index
         else:
             keepSwimming=False
@@ -137,6 +128,7 @@ def calcTurnSpeed(angle,goalAngle,timeBetween):
 def mainPure():
     lookAhead = 1
     currentIndex = 0
+    ready=True
 
     while (True):
         x, y = RobotState.getPosition()
@@ -147,10 +139,34 @@ def mainPure():
         goalx, goaly = Path.position(currentIndex)
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
 
-        angularSpeed, linearSpeed = purePursuit(x, y, goalx, goaly, angle)
+        if (Trig.angleDifference(angle,goalAngle)<120 and ready):
+            angularSpeed, linearSpeed = purePursuit(x, y, goalx, goaly, angle)
+        else:
+            angularSpeed=turnDirection(angle,goalAngle)*2
+            linearSpeed=0
+            ready=Trig.angleDifference(angle,goalAngle)<20
 
         postSpeed(angularSpeed, linearSpeed)
 
+
+def mainOwn():
+    lookAhead = 1
+    currentIndex = 0
+
+    while (True):
+        x, y = RobotState.getPosition()
+        angle = RobotState.getDirection()
+
+        currentIndex = choosePoint(x, y, lookAhead, currentIndex, angle)
+
+        goalx, goaly = Path.position(currentIndex)
+        goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
+
+        angularSpeed = 2*turnDirection(angle,goalAngle)*min(1,Trig.angleDifference(angle,goalAngle)/180)
+
+        linearSpeed = 0.5*(1 - Trig.angleDifference(angle,goalAngle)/90)
+
+        postSpeed(angularSpeed, linearSpeed)
         time.sleep(1/10)
 
 def mainRotAndDrive():
@@ -198,7 +214,7 @@ def mainCheckVisability():
 
 
 if __name__ == '__main__':
-    mainPure()
+    mainOwn()
 
 
 
