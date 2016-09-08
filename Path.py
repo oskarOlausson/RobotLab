@@ -17,20 +17,7 @@ def position(index):
 def length():
     return len(path)
 
-def choosePoint(x,y,lookAhead,currentIndex):
-    goalx,goaly=position(currentIndex)
-    keepSwimming=True
-
-    while keepSwimming:
-        currentIndex+=1
-        if Trig.distanceToPoint(x, y, *position(currentIndex))<lookAhead:
-            goalx, goaly = position(currentIndex)
-        else:
-            keepSwimming=False
-
-    return goalx,goaly
-
-path = load("Path-to-bed.json")
+path = load("Path-around-table-and-back.json")
 
 if __name__ == '__main__':
     for i in range(0,length()):

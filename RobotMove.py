@@ -30,9 +30,9 @@ def turnDirection(currentAngle, goalAngle):
         else:
             return 1
 
-def robotCanSee(x,y,goalx ,goaly):
+def robotCanSee(x,y,goalx ,goaly,robotDirection):
     angle = Trig.angleToPoint(x,y,goalx,goaly)
-    laserAngle=Trig.degToLaser(angle)
+    laserAngle=Trig.degToLaser(angle,robotDirection)
 
     if laserAngle<0 or laserAngle>269:
         return True
@@ -42,25 +42,37 @@ def robotCanSee(x,y,goalx ,goaly):
         #print "laserLength: %.3f, length: %.3f, \nangle: %.3f, laserangle: %.3f" % (laserLength,Trig.distanceToPoint(x,y,goalx,goaly),angle,laserAngle)
         return laserLength>Trig.distanceToPoint(x,y,goalx,goaly)
 
-def purePursuit(x,y,goalx,goaly,lookAhead):
+def purePursuit(x,y,goalx,goaly,angle):
 
-    linearSpeed=0.4
+    linearSpeed=.4
+
+    dist=Trig.distanceToPoint(x,y,goalx,goaly)
+    vb=Trig.angleToPoint(x,y,goalx,goaly)-angle
+
+    #xprim = cos(Trig.degToRad(vb)) * dist
+    yprim = sin(Trig.degToRad(vb))*dist
+
+    #d=((yprim**2)-(xprim**2))/(2*yprim)
+
+    l=(Trig.distanceToPoint(x,y,goalx,goaly))
+
+    print "yprim: %.3f" % yprim
 
     #constant
-    gamma=(2*(goaly-y))/(lookAhead**2)
+    gammay= (2 * yprim) / (l**2)
+
     keepOn=True
 
-    angularSpeed = linearSpeed * gamma
+    angularSpeed = linearSpeed * gammay
+    """
+    print "angularSpeed: %.5f" % angularSpeed
 
-    print "angularSpeed: %.3f" % angularSpeed
-
-
-    while((angularSpeed<=-2 or angularSpeed>=2) and linearSpeed>=.1):
-        linearSpeed-=0.1
-        angularSpeed= linearSpeed * gamma
+    while((angularSpeed<=-2 or angularSpeed>=2) and linearSpeed>=.5):
+        linearSpeed-=0.5
+        angularSpeed= linearSpeed * gammay
 
     if linearSpeed==0: angularSpeed=1
-
+    """
 
     return angularSpeed,linearSpeed
 
@@ -71,32 +83,36 @@ def robotCanGo2(x,y,goalx,goaly):
 
     return canGo
 
-def robotCanGo(x,y,goalx,goaly):
-    angle=Trig.angleToPoint(0,0,goalx,goaly)
-    dist=Trig.distanceToPoint(0,0,goalx,goaly)
-    index=Trig.degToLaser(angle)
+def robotCanGo(x,y,goalx,goaly,robotDirection):
+    angle=Trig.angleToPoint(x,y,goalx,goaly)
+    dist=Trig.distanceToPoint(x,y,goalx,goaly)
+    index=Trig.degToLaser(angle,robotDirection)
     laser = getLaser()
+
+    if index>270 or index<0:
+        print "Can't see in direction index: %d" % index
+        return False
 
     leftIndex=index
     rightIndex=index
 
-
+    #nearest point to the left
     while(leftIndex<270 and leftIndex>0 and laser['Echoes'][leftIndex]>dist):
         leftIndex+=1
 
+    #nearest point to the right
     while(rightIndex>1 and rightIndex<270 and laser['Echoes'][rightIndex]>dist):
         rightIndex-=1
 
-    lx,ly=Path.position(leftIndex)
-    rx,ry=Path.position(rightIndex)
-    rlAngle=Trig.angleToPoint(lx,ly,rx,ry)
+    passWidthL = laser['Echoes'][leftIndex]  * sin(Trig.degToRad(Trig.angleDifference(index, leftIndex)))
+    passWidthR = laser['Echoes'][rightIndex] * sin(Trig.degToRad(Trig.angleDifference(index, rightIndex)))
 
-    dist = Trig.distanceToPoint(lx,ly,rx,ry) * cos(Trig.degToRad(Trig.angleDifference(angle-90,rlAngle)))
+    """returns whether the passing distance to the left and the passing distance to the right
+    is wider than the robot"""
+    return (abs(passWidthL)+abs(passWidthR))>RobotState.getWidth()
 
-    return dist>RobotState.getWidth()
+def choosePoint(x,y,lookAhead,currentIndex,angle):
 
-def choosePoint(x,y,lookAhead,currentIndex):
-    goalx,goaly=Path.position(currentIndex)
     keepSwimming=True
     index=currentIndex
 
@@ -105,45 +121,39 @@ def choosePoint(x,y,lookAhead,currentIndex):
         goalx,goaly = Path.position(index)
         distance = Trig.distanceToPoint(x, y, goalx, goaly)
 
-        if distance<lookAhead and robotCanGo(x,y,goalx,goaly):
+        if distance<lookAhead:#and robotCanSee(x,y,goalx,goaly,angle):
             currentIndex=index
-            print "can see point %d, %.3f, %.3f" % (index,goalx,goaly)
         else:
             keepSwimming=False
 
     return currentIndex
 
 def calcTurnSpeed(angle,goalAngle,timeBetween):
-    leftToTurn=abs(Trig.angleDifference(angle,goalAngle))
+    leftToTurn=Trig.angleDifference(angle,goalAngle)
     angleSpeed=Trig.degToRad(leftToTurn)/timeBetween
     angleSpeed=min(1,angleSpeed)
     return angleSpeed
 
-if __name__ == '__main__':
-    currentIndex=0
-    lookAhead = 2
-    while(True):
+def mainPure():
+    lookAhead = 1
+    currentIndex = 0
+
+    while (True):
         x, y = RobotState.getPosition()
-        currentIndex=choosePoint(x,y,lookAhead,currentIndex)
-        goalx,goaly=Path.position(currentIndex)
+        angle = RobotState.getDirection()
 
-        start = time.time()
-        time.sleep(.1)
+        currentIndex = choosePoint(x, y, lookAhead, currentIndex, angle)
 
-        direction=RobotState.getDirection()
-        goalAngle=Trig.angleToPoint(x,y,goalx,goaly)
-        end=time.time()
-        if (Trig.angleDifference(direction,goalAngle)>1):
-            turn = turnDirection(direction, goalAngle)
-            postSpeed(turn*calcTurnSpeed(direction,goalAngle,end-start),0)
-        else:
-            postSpeed(0,.1)
-        #postSpeed(*purePursuit(x,y,goalx,goaly,lookAhead))
-        print "goalx,goaly: (%.3f, %.3f)" % (goalx,goaly)
-        start=time.time()
-        time.sleep(.1)
+        #goalx, goaly = Path.position(currentIndex)
+        goalx,goaly=1,-2
+        goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
 
-def notMain():
+        angularSpeed, linearSpeed = purePursuit(x, y, goalx, goaly, angle)
+
+        postSpeed(angularSpeed, linearSpeed)
+        time.clock(1/10)
+
+def mainRotAndDrive():
     #looks one meter ahead
     lookAhead=1
     goalx,goaly=RobotState.getPosition()
@@ -160,13 +170,13 @@ def notMain():
         #previous position for goal
         pgoalx, pgoaly = goalx,goaly
         currentIndex=choosePoint(x,y, lookAhead, currentIndex)
-        print "currentIndex: %d" % currentIndex
+
         goalx, goaly = Path.position(currentIndex)
 
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
         end = time.time()
 
-        if (Trig.angleDifference(direction,goalAngle)>1):
+        if Trig.angleDifference(direction,goalAngle)>2:
             turn = turnDirection(direction, goalAngle)
             postSpeed(turn*calcTurnSpeed(direction,goalAngle,end-start),0)
         else:
@@ -174,6 +184,27 @@ def notMain():
 
         start = time.time()
         time.sleep(.1)
+def mainCheckVisability():
+    x, y = 0, 0
+    robotDirection = 0
+    for i in range(1, 6):
+        index = choosePoint(x, y, i, 0)
+        gx, gy = Path.position(index)
+        direction = Trig.angleToPoint(x, y, gx, gy)
+        laserUsed = Trig.degToLaser(direction, robotDirection)
+        print "Point (%.3f, %.3f): direction:%.3f, laserUsed:%d" % (gx, gy, direction, laserUsed)
+        print "\tCan see: %r, Can move: %r" % (
+        robotCanSee(x, y, gx, gy, robotDirection), robotCanGo(x, y, gx, gy, robotDirection))
+
+
+if __name__ == '__main__':
+    mainPure()
+
+
+
+
+
+
 
 
 
