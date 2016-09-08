@@ -150,6 +150,7 @@ def mainPure():
         angularSpeed, linearSpeed = purePursuit(x, y, goalx, goaly, angle)
 
         postSpeed(angularSpeed, linearSpeed)
+
         time.sleep(1/10)
 
 def mainRotAndDrive():
