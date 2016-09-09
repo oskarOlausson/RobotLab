@@ -147,7 +147,7 @@ def mainPure(linearPreference, pathHandler):
 
         currentIndex = choosePoint(x, y, lookAhead, currentIndex, angle,pathHandler)
 
-        goalx, goaly = path.position(currentIndex)
+        goalx, goaly = pathHandler.position(currentIndex)
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
 
         if (Trig.angleDifference(angle,goalAngle)<120 and ready):
