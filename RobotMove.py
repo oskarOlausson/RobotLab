@@ -11,6 +11,7 @@ File handles Robot movements and maths about it.
 #turn right(target angle)
 #turn left(target angle)
 #turn speed(M/s^2)
+import sys
 import time
 import Trig,Path,RobotState
 from math import sin,cos,sqrt,ceil
@@ -42,10 +43,10 @@ def robotCanSee(x,y,goalx ,goaly,robotDirection):
         #print "laserLength: %.3f, length: %.3f, \nangle: %.3f, laserangle: %.3f" % (laserLength,Trig.distanceToPoint(x,y,goalx,goaly),angle,laserAngle)
         return laserLength>Trig.distanceToPoint(x,y,goalx,goaly)
 
-def purePursuit(x,y,goalx,goaly,angle):
+def purePursuit(x,y,goalx,goaly,angle,linearPreference):
 
     goalAngle = Trig.angleToPoint(x,y,goalx,goaly)
-    linearSpeed = 1
+    linearSpeed = linearPreference
 
     dist=Trig.distanceToPoint(x,y,goalx,goaly)
     vb=goalAngle-angle
@@ -69,9 +70,10 @@ def purePursuit(x,y,goalx,goaly,angle):
     #radius of circle
     r=1/gammay
 
-    if collisionAlongPath(x,y,goalx,goaly,r,gammay*linearSpeed):
+    #stop us from colliding in obstacle front
+    while collisionAlongPath(x,y,goalx,goaly,r,gammay*linearSpeed) and linearSpeed>0.1:
         print "WE are GOING to CRash, pumps the breaks"
-        linearSpeed=0.4
+        linearSpeed-=0.1
 
 
     return angularSpeed,linearSpeed
@@ -134,7 +136,7 @@ def calcTurnSpeed(angle,goalAngle,timeBetween):
     angleSpeed=min(1,angleSpeed)
     return angleSpeed
 
-def mainPure():
+def mainPure(linearPreference):
     lookAhead = 1
     currentIndex = 0
     ready=True
@@ -149,7 +151,7 @@ def mainPure():
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
 
         if (Trig.angleDifference(angle,goalAngle)<120 and ready):
-            angularSpeed, linearSpeed = purePursuit(x, y, goalx, goaly, angle)
+            angularSpeed, linearSpeed = purePursuit(x, y, goalx, goaly, angle,linearPreference)
         else:
             angularSpeed=turnDirection(angle,goalAngle)*2
             linearSpeed=0
@@ -244,7 +246,12 @@ def mainCheckVisability():
 
 
 if __name__ == '__main__':
-    mainPure()
+    str=sys.argv
+    #first argument is filePath
+    #parse to number int(sys.argv[2]) or float(sys.argv[2])
+
+    #path.load(str)
+    mainPure(linearPreference)
 
 
 
