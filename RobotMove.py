@@ -13,7 +13,7 @@ File handles Robot movements and maths about it.
 #turn speed(M/s^2)
 import time
 import Trig,Path,RobotState
-from math import sin,cos,sqrt
+from math import sin,cos,sqrt,ceil
 from Postman import postSpeed,getLaser
 
 """returns what direction the robot should turn,
@@ -44,10 +44,11 @@ def robotCanSee(x,y,goalx ,goaly,robotDirection):
 
 def purePursuit(x,y,goalx,goaly,angle):
 
-    linearSpeed=.4
+    goalAngle = Trig.angleToPoint(x,y,goalx,goaly)
+    linearSpeed = 1
 
     dist=Trig.distanceToPoint(x,y,goalx,goaly)
-    vb=Trig.angleToPoint(x,y,goalx,goaly)-angle
+    vb=goalAngle-angle
 
     #xprim = cos(Trig.degToRad(vb)) * dist
     yprim = sin(Trig.degToRad(vb))*dist
@@ -59,20 +60,26 @@ def purePursuit(x,y,goalx,goaly,angle):
     _,lin=RobotState.getSpeed()
     angularSpeed = gammay * lin
 
+    """
     while((angularSpeed<=-2 or angularSpeed>=2) and linearSpeed>.5):
         linearSpeed-=0.5
         angularSpeed= linearSpeed * gammay
         exit(19)
+    """
+
+    if collisionAlongPath(x,y,goalx,goaly,1/gammay,angularSpeed):
+        print "WE are GOING to CRash, pumps the breaks"
+        linearSpeed=0.4
 
 
     return angularSpeed,linearSpeed
 
-def robotCanGo2(x,y,goalx,goaly):
-    canGo=True
+def robotCanBe(x,y,gx,gy,angle):
+    for i in range(0,7):
+        cx,cy=RobotState.getBoth(gx,gy,angle,i)
+        if ~robotCanSee(x,y,cx,cy,RobotState.getDirection()): return False
 
-
-
-    return canGo
+    return True
 
 def robotCanGo(x,y,goalx,goaly,robotDirection):
     angle=Trig.angleToPoint(x,y,goalx,goaly)
@@ -148,6 +155,29 @@ def mainPure():
 
         postSpeed(angularSpeed, linearSpeed)
 
+def collisionAlongPath(x,y,goalx,goaly,r,angularSpeed):
+    if angularSpeed==0: return robotCanBe(x,y,goalx,goaly,RobotState.getDirection())
+
+    cx=x-r*sin(angularSpeed)
+    cy=y+r*cos(angularSpeed)
+
+    centerToRobot=Trig.angleToPoint(cx,cy,x,y)
+    centerToGoal=Trig.angleToPoint(cx,cy,goalx,goaly)
+
+    angleDiff=Trig.angleDifference(centerToRobot,centerToGoal)
+
+    for i in range(5,int (ceil(angleDiff)),5):
+        index=centerToRobot+i*turnDirection(centerToRobot,centerToGoal)
+        gx=cos(index)*r
+        gy=sin(index)*r
+
+        perpendicular=90*(abs(angularSpeed)/angularSpeed)
+
+        if ~robotCanBe(x,y,gx,gy,index+perpendicular): return False
+
+    return True
+
+
 
 def mainOwn():
     lookAhead = 1
@@ -214,7 +244,7 @@ def mainCheckVisability():
 
 
 if __name__ == '__main__':
-    mainOwn()
+    mainPure()
 
 
 
