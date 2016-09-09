@@ -13,7 +13,7 @@ File handles Robot movements and maths about it.
 #turn speed(M/s^2)
 import sys
 import time
-import Trig,Path,RobotState
+import Trig,path,RobotState
 from math import sin,cos,sqrt,ceil
 from Postman import postSpeed,getLaser
 
@@ -119,8 +119,8 @@ def choosePoint(x,y,lookAhead,currentIndex,angle):
     index=currentIndex
 
     while keepSwimming:
-        index=min(index+1,Path.length()-1)
-        goalx,goaly = Path.position(index)
+        index=min(index + 1, path.length() - 1)
+        goalx,goaly = path.position(index)
         distance = Trig.distanceToPoint(x, y, goalx, goaly)
 
         if distance<lookAhead and robotCanGo(x,y,goalx,goaly,angle):
@@ -147,7 +147,7 @@ def mainPure(linearPreference):
 
         currentIndex = choosePoint(x, y, lookAhead, currentIndex, angle)
 
-        goalx, goaly = Path.position(currentIndex)
+        goalx, goaly = path.position(currentIndex)
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
 
         if (Trig.angleDifference(angle,goalAngle)<120 and ready):
@@ -191,7 +191,7 @@ def mainOwn():
 
         currentIndex = choosePoint(x, y, lookAhead, currentIndex, angle)
 
-        goalx, goaly = Path.position(currentIndex)
+        goalx, goaly = path.position(currentIndex)
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
 
         angularSpeed = 2*turnDirection(angle,goalAngle)*min(1,Trig.angleDifference(angle,goalAngle)/180)
@@ -219,7 +219,7 @@ def mainRotAndDrive():
         pgoalx, pgoaly = goalx,goaly
         currentIndex=choosePoint(x,y, lookAhead, currentIndex)
 
-        goalx, goaly = Path.position(currentIndex)
+        goalx, goaly = path.position(currentIndex)
 
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
         end = time.time()
@@ -237,7 +237,7 @@ def mainCheckVisability():
     robotDirection = 0
     for i in range(1, 6):
         index = choosePoint(x, y, i, 0)
-        gx, gy = Path.position(index)
+        gx, gy = path.position(index)
         direction = Trig.angleToPoint(x, y, gx, gy)
         laserUsed = Trig.degToLaser(direction, robotDirection)
         print "Point (%.3f, %.3f): direction:%.3f, laserUsed:%d" % (gx, gy, direction, laserUsed)
