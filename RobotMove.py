@@ -70,10 +70,30 @@ def purePursuit(x,y,goalx,goaly,angle,linearPreference):
     #radius of circle
     r=1/gammay
 
+    linTest=linearSpeed
+
+    if abs(angularSpeed)> 2:
+        #2 times sign of angularspeed
+        angularSpeed=2*(angularSpeed/abs(angularSpeed))
+        linTest=angularSpeed/gammay
+    else:
+        linTest=linearSpeed
+
     #stop us from colliding in obstacle front
-    while collisionAlongPath(x,y,goalx,goaly,r,gammay*linearSpeed) and linearSpeed>0.1:
-        print "WE are GOING to CRash, pumps the breaks"
-        linearSpeed-=0.1
+    while collisionAlongPath(x,y,goalx,goaly,r,gammay*linTest) and linTest>0.1:
+        linTest-=0.1
+        print "WE are GOING to CRash in front, pumps the breaks"
+
+    if collisionAlongPath(x,y,goalx,goaly,r,gammay*linTest):
+        linTest=linearSpeed
+
+        while collisionAlongPath(x, y, goalx, goaly, r, angularSpeed) and abs(angularSpeed) > 0.1:
+            angularSpeed -= 0.1*(angularSpeed/abs(angularSpeed))
+            print "We are Going TO crAsh iN THE corneR!!!"
+
+    else:
+        linearSpeed=linTest
+
 
 
     return angularSpeed,linearSpeed
@@ -136,8 +156,11 @@ def calcTurnSpeed(angle,goalAngle,timeBetween):
     angleSpeed=min(1,angleSpeed)
     return angleSpeed
 
+def inGoal(x,y,pathHandler):
+    return Trig.distanceToPoint(x,y,*pathHandler.getLast())<1
+
 def mainPure(linearPreference, pathHandler):
-    lookAhead = 1
+    lookAhead = 4
     currentIndex = 0
     ready=True
 
@@ -162,23 +185,25 @@ def mainPure(linearPreference, pathHandler):
 def collisionAlongPath(x,y,goalx,goaly,r,angularSpeed):
     if angularSpeed==0: return robotCanBe(x,y,goalx,goaly,RobotState.getDirection())
 
-    cx=x-r*sin(angularSpeed)
-    cy=y+r*cos(angularSpeed)
+    cx = x - r * sin(angularSpeed)
+    cy = y + r * cos(angularSpeed)
 
-    centerToRobot=Trig.angleToPoint(cx,cy,x,y)
-    centerToGoal=Trig.angleToPoint(cx,cy,goalx,goaly)
+    centerToRobot = Trig.angleToPoint(cx, cy, x, y)
+    centerToGoal = Trig.angleToPoint(cx, cy, goalx, goaly)
 
-    angleDiff=Trig.angleDifference(centerToRobot,centerToGoal)
-    midAngle=int (ceil(angleDiff))/2
+    angleDiff = Trig.angleDifference(centerToRobot, centerToGoal)
+    max=20
+    for i in range(1,max):
+        index=centerToRobot+angleDiff*(i/max)*turnDirection(centerToRobot,centerToGoal)
 
-    index=centerToRobot+midAngle*turnDirection(centerToRobot,centerToGoal)
+        gx=cos(index)*r
+        gy=sin(index)*r
 
-    gx=cos(index)*r
-    gy=sin(index)*r
+        perpendicular=90*(abs(angularSpeed)/angularSpeed)
 
-    perpendicular=90*(abs(angularSpeed)/angularSpeed)
+        if ~robotCanBe(x,y,gx,gy,index+perpendicular): return False
 
-    return robotCanBe(x,y,gx,gy,index+perpendicular)
+    return True
 
 
 def mainOwn():
