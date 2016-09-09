@@ -57,8 +57,7 @@ def purePursuit(x,y,goalx,goaly,angle):
     gammay= (2 * yprim) / (dist**2)
 
     #angularSpeed = linearSpeed * gammay
-    _,lin=RobotState.getSpeed()
-    angularSpeed = gammay * lin
+    angularSpeed = gammay * linearSpeed
 
     """
     while((angularSpeed<=-2 or angularSpeed>=2) and linearSpeed>.5):
@@ -67,7 +66,10 @@ def purePursuit(x,y,goalx,goaly,angle):
         exit(19)
     """
 
-    if collisionAlongPath(x,y,goalx,goaly,1/gammay,angularSpeed):
+    #radius of circle
+    r=1/gammay
+
+    if collisionAlongPath(x,y,goalx,goaly,r,gammay*linearSpeed):
         print "WE are GOING to CRash, pumps the breaks"
         linearSpeed=0.4
 
@@ -165,18 +167,16 @@ def collisionAlongPath(x,y,goalx,goaly,r,angularSpeed):
     centerToGoal=Trig.angleToPoint(cx,cy,goalx,goaly)
 
     angleDiff=Trig.angleDifference(centerToRobot,centerToGoal)
+    midAngle=int (ceil(angleDiff))/2
 
-    for i in range(5,int (ceil(angleDiff)),5):
-        index=centerToRobot+i*turnDirection(centerToRobot,centerToGoal)
-        gx=cos(index)*r
-        gy=sin(index)*r
+    index=centerToRobot+midAngle*turnDirection(centerToRobot,centerToGoal)
 
-        perpendicular=90*(abs(angularSpeed)/angularSpeed)
+    gx=cos(index)*r
+    gy=sin(index)*r
 
-        if ~robotCanBe(x,y,gx,gy,index+perpendicular): return False
+    perpendicular=90*(abs(angularSpeed)/angularSpeed)
 
-    return True
-
+    return robotCanBe(x,y,gx,gy,index+perpendicular)
 
 
 def mainOwn():
