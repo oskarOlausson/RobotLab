@@ -8,7 +8,7 @@ import json
 
 class Path:
     def __init__(self, pathName):
-        self.pathName = fileString
+        self.pathName = pathName
         self.path = self.load(pathName)
 
     def load(self, fileString):
