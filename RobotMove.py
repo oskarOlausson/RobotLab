@@ -113,14 +113,14 @@ def robotCanGo(x,y,goalx,goaly,robotDirection):
     is wider than the robot"""
     return (abs(passWidthL)+abs(passWidthR))>RobotState.getWidth()
 
-def choosePoint(x,y,lookAhead,currentIndex,angle):
+def choosePoint(x,y,lookAhead,currentIndex,angle,pathHandler):
 
     keepSwimming=True
     index=currentIndex
 
     while keepSwimming:
-        index=min(index + 1, path.length() - 1)
-        goalx,goaly = path.position(index)
+        index=min(index + 1, pathHandler.length() - 1)
+        goalx,goaly = pathHandler.position(index)
         distance = Trig.distanceToPoint(x, y, goalx, goaly)
 
         if distance<lookAhead and robotCanGo(x,y,goalx,goaly,angle):
@@ -136,7 +136,7 @@ def calcTurnSpeed(angle,goalAngle,timeBetween):
     angleSpeed=min(1,angleSpeed)
     return angleSpeed
 
-def mainPure(linearPreference):
+def mainPure(linearPreference, pathHandler):
     lookAhead = 1
     currentIndex = 0
     ready=True
@@ -145,7 +145,7 @@ def mainPure(linearPreference):
         x, y = RobotState.getPosition()
         angle = RobotState.getDirection()
 
-        currentIndex = choosePoint(x, y, lookAhead, currentIndex, angle)
+        currentIndex = choosePoint(x, y, lookAhead, currentIndex, angle,pathHandler)
 
         goalx, goaly = path.position(currentIndex)
         goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
@@ -246,12 +246,18 @@ def mainCheckVisability():
 
 
 if __name__ == '__main__':
+    # arguements in order executable path, path to the path, linearSpeedDefault
     str=sys.argv
-    #first argument is filePath
-    #parse to number int(sys.argv[2]) or float(sys.argv[2])
+    pathName=sys.argv[1]
+    linearPreference=float(sys.argv[2])
 
-    #path.load(str)
-    mainPure(linearPreference)
+    pathHandler = path.Path(pathName)
+
+    if linearPreference>1 or linearPreference<=0:
+        print "Unreasonable speed preference set, please set within (>0 to 1), you set it to %.3f" % linearPreference
+        exit(3)
+
+    mainPure(linearPreference,pathHandler)
 
 
 
