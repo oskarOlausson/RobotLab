@@ -2,15 +2,18 @@
 File that handles  the states of the robot
 """
 
-import Postman,Trig
 from math import sin,cos
+
+import Postman
+import Trig
+
 
 #returns the robots direction in degrees
 def getDirection():
     unitVector = Postman.getBearing()
     ux=unitVector['X']
     uy=unitVector['Y']
-    return Trig.angleToPoint(0,0,ux,uy)
+    return Trig.angleToPoint(0, 0, ux, uy)
 
 #returns angular,linear
 def getSpeed():
@@ -35,7 +38,7 @@ if __name__ == '__main__':
 
 
 def getCorners(x, y, angle, cornerNumber):
-    len = Trig.distanceToPoint(0,0,getSize()/2,getSize()/2)
+    len = Trig.distanceToPoint(0, 0, getSize() / 2, getSize() / 2)
 
     #0 is upperLeft, 1 is lowerLeft, 2 is lowerRight and 3 is upperRight
     cornerNumber= 90 * (cornerNumber % 4) + 45
@@ -66,4 +69,5 @@ def getBoth(gx,gy,angle,number):
 
 def getSize():
     #got from differential-drive
-    return 0.40000000596046448
+    #return 0.40000000596046448
+    return 0.6

@@ -2,7 +2,6 @@
 File that handles paths and stuff
 """
 
-import Trig
 import json
 
 

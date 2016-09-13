@@ -1,0 +1,47 @@
+import unittest
+from math import cos
+
+from src import Trig, RobotState
+
+
+# Here's our "unit".
+def IsOdd(n):
+    return n % 2 == 1
+
+# Here's our "unit tests".
+class IsOddTests(unittest.TestCase):
+    margin = 0.001
+
+    def testCornersEasy(self):
+        x,y=0,0
+        angle=0
+        len = RobotState.getSize() / 2
+
+        cx,cy = RobotState.getCorners(x, y, angle, 0)
+
+        self.failIf((cx-len)>self.margin or (cy-len)>self.margin)
+
+    def testCornerHard(self):
+        x, y = 7, 3
+        angle = 45
+        len = RobotState.getSize() / 2
+
+        cx, cy = RobotState.getCorners(x, y, angle, 3)
+
+        expectedX=7+ cos(Trig.degToRad(315 + angle)) * RobotState.getSize() * 0.5
+
+        print "cx= %.3f, ex= %.3f" % (cx,expectedX)
+
+        self.failIf((cx-expectedX)>self.margin or (cy-y)>self.margin)
+
+    def testOne(self):
+        self.failUnless(IsOdd(1))
+
+    def testTwo(self):
+        self.failIf(IsOdd(2))
+
+def main():
+    unittest.main()
+
+if __name__ == '__main__':
+    main()
