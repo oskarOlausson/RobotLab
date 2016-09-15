@@ -4,7 +4,6 @@ File that handles trigonomics math
 from math import sin, cos, pi, atan2, sqrt
 
 def sign(a):
-    #TODO
     return int(a>0) - int(a<0)
 
 #Converts from radians to degrees

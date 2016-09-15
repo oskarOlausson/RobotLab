@@ -83,19 +83,20 @@ def robotCanBe(x,y,gx,gy,angle):
         if not robotCanSee(x, y, cx, cy, RobotState.getDirection()): return False
     return True
 
-def choosePoint(x,y,lookAhead,currentIndex,pathHandler):
+def choosePoint(x,y,currentIndex,pathHandler):
 
     index = currentIndex
     gx,gy=pathHandler.position(index)
 
     while not robotCanSee(x,y,gx,gy,0):
-        index=max(0,index-1)
-        gx,gy=pathHandler.position(index)
+        index = max(0,index-1)
+        gx, gy = pathHandler.position(index)
 
     while robotCanSee(x,y,gx,gy,0):
         index=min(index+1,pathHandler.length()-1)
         gx,gy=pathHandler.position(index)
-        if not robotCanBe(x,y,gx,gy,0): index=max(0,index-1)
+
+    if not robotCanBe(x, y, gx, gy, 0): index = max(0, index - 1)
 
     return index
 
@@ -130,7 +131,9 @@ def mainPure(linearPreference, pathHandler):
         x, y = RobotState.getPosition()
         angle = RobotState.getDirection()
 
-        currentIndex = choosePoint(x, y, lookAhead, currentIndex, pathHandler)
+        currentIndex = choosePoint(x, y, currentIndex, pathHandler)
+
+        currentIndex = safeTravel(x,y,angle,linearPreference,currentIndex,pathHandler)
         goalx, goaly = pathHandler.position(currentIndex)
         ang, lin = purePursuit(x,y,goalx,goaly,angle,linearPreference)
 
