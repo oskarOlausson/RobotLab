@@ -131,7 +131,7 @@ def mainPure(linearPreference, pathHandler):
 
     while (True):
         x, y = RobotState.getPosition()
-        print "x %.3f, y %.3f" (x,y)
+        print "x %.3f, y %.3f" % (x,y)
         angle = RobotState.getDirection()
 
         #can we see
