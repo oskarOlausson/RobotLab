@@ -44,7 +44,7 @@ def robotCanSee(x,y,goalx ,goaly,robotDirection):
     laserAngle= Trig.radToLaser(angle, robotDirection)
 
     if laserAngle<0 or laserAngle>269:
-        return True
+        return False
     else:
         #print "laserAngle %d" % laserAngle
         laserLength=getLaser()['Echoes'][laserAngle]
