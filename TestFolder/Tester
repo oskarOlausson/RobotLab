@@ -65,6 +65,16 @@ class IsOddTests(unittest.TestCase):
         self.failUnlessAlmostEqual(cx, expectedX)
         self.failUnlessAlmostEqual(cy, expectedY)
 
+    def testDistanceToPoint(self):
+        self.assertAlmostEqual(Trig.distanceToPoint(0,0,5,5),5*sqrt(2))
+        self.assertAlmostEqual(Trig.distanceToPoint(1, 1, 1, 5), 4)
+        self.assertAlmostEqual(Trig.distanceToPoint(5, 0, -5, 0), 10)
+
+    def testAngleToPoint(self):
+        self.assertAlmostEqual(Trig.angleToPoint(0,0,5,5),pi/4)
+        self.assertAlmostEqual(Trig.angleToPoint(0, 0, -5, 5), 5*pi/4)
+        self.assertAlmostEqual(Trig.angleToPoint(0, 0, -5, -5), 7 * pi / 4)
+
     def testAngleDifferenceDirection(self):
         #positive direction
         startAngles =       [10,  20,  10, -10,  0,   0]

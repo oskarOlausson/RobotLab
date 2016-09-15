@@ -131,6 +131,7 @@ def mainPure(linearPreference, pathHandler):
 
     while (True):
         x, y = RobotState.getPosition()
+        print "x %.3f, y %.3f" (x,y)
         angle = RobotState.getDirection()
 
         #can we see
@@ -141,12 +142,9 @@ def mainPure(linearPreference, pathHandler):
         start = time.time()
         currentIndex = safeTravel(x,y,angle,currentIndex,pathHandler)
 
-
-        stop = time.time()
-        print "second function took %.3f seconds" % (stop-start)
         goalx, goaly = pathHandler.position(currentIndex)
         dist = Trig.distanceToPoint(x, y, goalx, goaly)
-        print "index %d, distance %.3f\n" % (currentIndex, dist)
+        print "index %d, x%.3f, y %.3f\n" % (currentIndex, goalx,goaly)
 
         ang, lin = purePursuit(x,y,goalx,goaly,angle,linearPreference)
         postSpeed(ang, lin)
@@ -272,7 +270,7 @@ if __name__ == '__main__':
     linearPreference=float(sys.argv[2])
 
     pathHandler = path.Path(pathName)
-    x,y=pathHandler.position(62)
+    x,y=pathHandler.position(113)
     print "position x,y = %.3f, %.3f" % (x,y)
 
     if linearPreference>1 or linearPreference<=0:
