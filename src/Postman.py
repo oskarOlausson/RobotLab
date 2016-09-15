@@ -14,26 +14,27 @@ from math import sin, cos, pi, atan2
 
 HEADERS = {"Content-type": "application/json", "Accept": "text/json"}
 
+mrds = httplib.HTTPConnection(MRDS_URL)
+
 
 class UnexpectedResponse(Exception): pass
 
 
 def postSpeed(angularSpeed, linearSpeed):
     """Sends a speed command to the MRDS server"""
-    mrds = httplib.HTTPConnection(MRDS_URL)
     params = json.dumps({'TargetAngularSpeed': angularSpeed, 'TargetLinearSpeed': linearSpeed})
     mrds.request('POST', '/lokarria/differentialdrive', params, HEADERS)
     response = mrds.getresponse()
+    data=response.read()
     status = response.status
     # response.close()
     if status == 204:
-        return response
+        return data
     else:
         raise UnexpectedResponse(response)
 
 
 def getSpeed():
-    mrds = httplib.HTTPConnection(MRDS_URL)
     mrds.request('GET', '/lokarria/differentialdrive')
     response = mrds.getresponse()
     if (response.status == 200):
@@ -41,7 +42,6 @@ def getSpeed():
 
         angularSpeed = allData["Feedback"]["CurrentAngularSpeed"]
         linearSpeed = allData["Feedback"]["CurrentLinearSpeed"]
-        response.close()
         return angularSpeed, linearSpeed
     else:
         return response
@@ -49,12 +49,10 @@ def getSpeed():
 
 def getLaser():
     """Requests the current laser scan from the MRDS server and parses it into a dict"""
-    mrds = httplib.HTTPConnection(MRDS_URL)
     mrds.request('GET', '/lokarria/laser/echoes')
     response = mrds.getresponse()
     if (response.status == 200):
         laserData = response.read()
-        response.close()
         return json.loads(laserData)
     else:
         return response
@@ -62,12 +60,10 @@ def getLaser():
 
 def getLaserProperties():
     """Requests the current laser scan from the MRDS server and parses it into a dict"""
-    mrds = httplib.HTTPConnection(MRDS_URL)
     mrds.request('GET', '/lokarria/laser/properties')
     response = mrds.getresponse()
     if (response.status == 200):
         laserData = response.read()
-        response.close()
         return json.loads(laserData)
     else:
         return response
@@ -75,12 +71,11 @@ def getLaserProperties():
 
 def getLaserAngles():
     """Requests the current laser properties from the MRDS server and parses it into a dict"""
-    mrds = httplib.HTTPConnection(MRDS_URL)
+
     mrds.request('GET', '/lokarria/laser/properties')
     response = mrds.getresponse()
     if (response.status == 200):
         laserData = response.read()
-        response.close()
         properties = json.loads(laserData)
         beamCount = int((properties['EndAngle'] - properties['StartAngle']) / properties['AngleIncrement'])
         a = properties['StartAngle']  # +properties['AngleIncrement']
@@ -95,12 +90,10 @@ def getLaserAngles():
 
 def getPose():
     """Reads the current position and orientation from the MRDS"""
-    mrds = httplib.HTTPConnection(MRDS_URL)
     mrds.request('GET', '/lokarria/localization')
     response = mrds.getresponse()
     if (response.status == 200):
         poseData = response.read()
-        response.close()
         return json.loads(poseData)
     else:
         return UnexpectedResponse(response)

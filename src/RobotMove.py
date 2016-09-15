@@ -21,12 +21,13 @@ import path
 from Postman import postSpeed,getLaser
 
 
-def sign(number):
-    return number>=0 - number<=0
+from math import pi
 
 """returns what direction the robot should turn,
 returns -1 for clockwise, 1 for counter-clockwise"""
 def turnDirection(currentAngle, goalAngle):
+    currentAngle %= 360
+    goalAngle %= 360
     if currentAngle<goalAngle:
         if currentAngle+180>goalAngle:
             return 1
@@ -40,7 +41,7 @@ def turnDirection(currentAngle, goalAngle):
 
 def robotCanSee(x,y,goalx ,goaly,robotDirection):
     angle = Trig.angleToPoint(x, y, goalx, goaly)
-    laserAngle= Trig.degToLaser(angle, robotDirection)
+    laserAngle= Trig.radToLaser(angle, robotDirection)
 
     if laserAngle<0 or laserAngle>269:
         return True
@@ -58,96 +59,63 @@ def purePursuit(x,y,goalx,goaly,angle,linearPreference):
     dist= Trig.distanceToPoint(x, y, goalx, goaly)
     vb=goalAngle-angle
 
-    #xprim = cos(Trig.degToRad(vb)) * dist
-    yprim = sin(Trig.degToRad(vb)) * dist
+    #xprim = cos(vb) * dist
+    yprim = sin(vb) * dist
 
     #constant
     gammay= (2 * yprim) / (dist**2)
 
-    #angularSpeed = linearSpeed * gammay
     angularSpeed = gammay * linearSpeed
 
     #radius of circle
-    r=1/gammay
+    r = 1/gammay
 
     if abs(angularSpeed)> 2:
         #2 times sign of angularspeed
-        angularSpeed=2*sign(angularSpeed)
+        angularSpeed=2*Trig.sign(angularSpeed)
         linearSpeed=angularSpeed/gammay
-
-    linTest=linearSpeed
-
-    #stop us from colliding in obstacle front
-    while collisionAlongPath(x,y,goalx,goaly,r,gammay*linTest) and linTest>0.1:
-        linTest -= 0.1
-        print "WE are GOING to CRash in front, pumps the breaks"
-
-    if collisionAlongPath(x,y,goalx,goaly,r,gammay*linTest):
-        linTest=linearSpeed
-
-        while collisionAlongPath(x, y, goalx, goaly, r, angularSpeed) and abs(angularSpeed) > 0.1:
-            angularSpeed -= 0.1*(angularSpeed/abs(angularSpeed))
-            print "We are Going TO crAsh iN THE corneR!!!"
-
-    else:
-        linearSpeed=linTest
 
     return angularSpeed,linearSpeed
 
 def robotCanBe(x,y,gx,gy,angle):
-    for i in range(0,7):
+    for i in range(0,8):
         cx,cy= RobotState.getBoth(gx, gy, angle, i)
-        if ~robotCanSee(x, y, cx, cy, RobotState.getDirection()): return False
+        if not robotCanSee(x, y, cx, cy, RobotState.getDirection()): return False
     return True
 
-def robotCanGo(x,y,goalx,goaly,robotDirection):
-    angle= Trig.angleToPoint(x, y, goalx, goaly)
-    dist= Trig.distanceToPoint(x, y, goalx, goaly)
-    index= Trig.degToLaser(angle, robotDirection)
-    laser = getLaser()
+def choosePoint(x,y,lookAhead,currentIndex,pathHandler):
 
-    if index>270 or index<0:
-        print "Can't see in direction index: %d" % index
-        return False
+    index = currentIndex
+    gx,gy=pathHandler.position(index)
 
-    leftIndex=index
-    rightIndex=index
+    while not robotCanSee(x,y,gx,gy,0):
+        index=max(0,index-1)
+        gx,gy=pathHandler.position(index)
 
-    #nearest point to the left
-    while(leftIndex<270 and leftIndex>0 and laser['Echoes'][leftIndex]>dist):
-        leftIndex+=1
+    while robotCanSee(x,y,gx,gy,0):
+        index=min(index+1,pathHandler.length()-1)
+        gx,gy=pathHandler.position(index)
+        if not robotCanBe(x,y,gx,gy,0): index=max(0,index-1)
 
-    #nearest point to the right
-    while(rightIndex>1 and rightIndex<270 and laser['Echoes'][rightIndex]>dist):
-        rightIndex-=1
+    return index
 
-    passWidthL = laser['Echoes'][leftIndex]  * sin(Trig.degToRad(Trig.angleDifference(index, leftIndex)))
-    passWidthR = laser['Echoes'][rightIndex] * sin(Trig.degToRad(Trig.angleDifference(index, rightIndex)))
+def safeTravel(x,y,angle,linearPreference,currentIndex,pathHandler):
 
-    """returns whether the passing distance to the left and the passing distance to the right
-    is wider than the robot"""
-    return (abs(passWidthL)+abs(passWidthR)) > RobotState.getWidth()
+    index = currentIndex
+    loop = True
 
-def choosePoint(x,y,lookAhead,currentIndex,angle,pathHandler):
+    while(loop):
+        goalx, goaly = pathHandler.position(index)
+        ang, lin = purePursuit(x,y,goalx,goaly,angle,linearPreference)
+        radius = lin/ang
+        loop = collisionAlongPath(x,y,goalx,goaly,radius)
+        if loop: index-=1
 
-    keepSwimming=True
-    index=currentIndex
-
-    while keepSwimming:
-        index=min(index + 1, pathHandler.length() - 1)
-        goalx,goaly = pathHandler.position(index)
-        distance = Trig.distanceToPoint(x, y, goalx, goaly)
-
-        if distance<lookAhead and robotCanGo(x,y,goalx,goaly,angle):
-            currentIndex=index
-        else:
-            keepSwimming=False
-
-    return currentIndex
+    return index
 
 def calcTurnSpeed(angle,goalAngle,timeBetween):
     leftToTurn= Trig.angleDifference(angle, goalAngle)
-    angleSpeed= Trig.degToRad(leftToTurn) / timeBetween
+    angleSpeed= leftToTurn / timeBetween
     angleSpeed=min(1,angleSpeed)
     return angleSpeed
 
@@ -155,51 +123,51 @@ def inGoal(x,y,pathHandler):
     return Trig.distanceToPoint(x, y, *pathHandler.getLast()) < 1
 
 def mainPure(linearPreference, pathHandler):
-    lookAhead = 4
+    lookAhead = 1
     currentIndex = 0
-    ready=True
 
     while (True):
         x, y = RobotState.getPosition()
         angle = RobotState.getDirection()
 
-        currentIndex = choosePoint(x, y, lookAhead, currentIndex, angle,pathHandler)
-
+        currentIndex = choosePoint(x, y, lookAhead, currentIndex, pathHandler)
         goalx, goaly = pathHandler.position(currentIndex)
-        goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
+        ang, lin = purePursuit(x,y,goalx,goaly,angle,linearPreference)
 
-        if (Trig.angleDifference(angle, goalAngle)<120 and ready):
-            angularSpeed, linearSpeed = purePursuit(x, y, goalx, goaly, angle,linearPreference)
-        else:
-            angularSpeed=turnDirection(angle,goalAngle)*2
-            linearSpeed=0
-            ready= Trig.angleDifference(angle, goalAngle) < 20
+        postSpeed(ang, lin)
 
-        postSpeed(angularSpeed, linearSpeed)
-
-def collisionAlongPath(x,y,goalx,goaly,r,angularSpeed):
-    if angularSpeed==0: return robotCanBe(x, y, goalx, goaly, RobotState.getDirection())
-
-    cx = x + r * sin(Trig.degToRad(RobotState.getDirection() + 90 * sign(angularSpeed)))
-    cy = y + r * cos(Trig.degToRad(RobotState.getDirection() + 90 * sign(angularSpeed)))
+def collisionAlongPath(x,y,goalx,goaly,r):
+    #if the path is fairly straight, just watch the end position
+    if abs(r)>10: return robotCanBe(x, y, goalx, goaly, RobotState.getDirection())
+    ret = False
+    robotAngle = RobotState.getDirection()
+    cx, cy = Trig.getCenterOfTurn(r, robotAngle, x, y)
 
     centerToRobot = Trig.angleToPoint(cx, cy, x, y)
-    centerToGoal = Trig.angleToPoint(cx, cy, goalx, goaly)
+    centerToGoal  = Trig.angleToPoint(cx, cy, goalx, goaly)
 
     angleDiff = Trig.angleDifference(centerToRobot, centerToGoal)
-    nrOfAngles=20
 
-    for i in range(1,nrOfAngles):
-        index=centerToRobot+angleDiff*(i/nrOfAngles)*turnDirection(centerToRobot,centerToGoal)
 
-        gx=cos(index)*r
-        gy=sin(index)*r
+    turnDir = turnDirection(centerToRobot,centerToGoal)
 
-        perpendicular=90*sign(angularSpeed)
+    nrOfAngles=5
+    #print "---Session---"
+    for i in range(0,nrOfAngles):
 
-        if ~robotCanBe(x,y,gx,gy,index+perpendicular): return False
+        index= centerToRobot + angleDiff * (float(i+1)/nrOfAngles) * turnDir
+        gx=cx+cos(index)*abs(r)
+        gy=cy+sin(index)*abs(r)
 
-    return True
+        #print "\t(%.3f, %.3f)" % (gx,gy)
+
+        angleAlongCircle = index + (pi/2)*Trig.sign(r)
+
+        check=robotCanBe(x, y, gx, gy, angleAlongCircle)
+
+        if not check: ret=True
+
+    return ret
 
 def mainOwn():
     lookAhead = 1
@@ -253,20 +221,41 @@ def mainRotAndDrive():
         start = time.time()
         time.sleep(.1)
 def mainCheckVisability():
-    x, y = 0, 0
-    robotDirection = 0
-    for i in range(1, 6):
-        index = choosePoint(x, y, i, 0)
-        gx, gy = path.position(index)
-        direction = Trig.angleToPoint(x, y, gx, gy)
-        laserUsed = Trig.degToLaser(direction, robotDirection)
-        print "Point (%.3f, %.3f): direction:%.3f, laserUsed:%d" % (gx, gy, direction, laserUsed)
-        print "\tCan see: %r, Can move: %r" % (
-        robotCanSee(x, y, gx, gy, robotDirection), robotCanGo(x, y, gx, gy, robotDirection))
+    x,y=0,0
+    goalx,goaly=3,1
+    linearPreference=1
+    angle=0
 
+    goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
+    linearSpeed = linearPreference
+
+    dist = Trig.distanceToPoint(x, y, goalx, goaly)
+    vb = goalAngle - angle
+
+    yprim = sin(vb) * dist
+
+    # constant
+    gammay = (2 * yprim) / (dist ** 2)
+
+    angularSpeed = gammay * linearSpeed
+
+    if abs(angularSpeed)> 2:
+        #2 times sign of angularspeed
+        angularSpeed=2*Trig.sign(angularSpeed)
+        linearSpeed=angularSpeed/gammay
+
+    # radius of circle
+    rTest = 1 / gammay
+
+    linTest=linearSpeed
+
+    while collisionAlongPath(x,y,goalx,goaly,rTest) and linTest>0.2:
+        linTest -= 0.1
+        rTest = linTest/angularSpeed
+
+    print "linTest: %.3f, rTest: %.3f" % (linTest,rTest)
 
 if __name__ == '__main__':
-    # arguements in order executable path, path to the path, linearSpeedDefault
     str=sys.argv
     pathName=sys.argv[1]
     linearPreference=float(sys.argv[2])
@@ -274,7 +263,7 @@ if __name__ == '__main__':
     pathHandler = path.Path(pathName)
 
     if linearPreference>1 or linearPreference<=0:
-        print "Unreasonable speed preference set, please set within (>0 to 1), you set it to %.3f" % linearPreference
+        print "Unreasonable speed preference set, please set within (>0 to 1), you have set it to %.3f" % linearPreference
         exit(3)
 
     mainPure(linearPreference,pathHandler)

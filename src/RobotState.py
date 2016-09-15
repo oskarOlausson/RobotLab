@@ -2,7 +2,7 @@
 File that handles  the states of the robot
 """
 
-from math import sin,cos
+from math import sin,cos,pi
 
 import Postman
 import Trig
@@ -21,7 +21,7 @@ def getSpeed():
 
 def getWidth():
     #in reality .4 but marginals
-    return .5;
+    return .5
 
 #returns x,y
 def getPosition():
@@ -41,10 +41,10 @@ def getCorners(x, y, angle, cornerNumber):
     len = Trig.distanceToPoint(0, 0, getSize() / 2, getSize() / 2)
 
     #0 is upperLeft, 1 is lowerLeft, 2 is lowerRight and 3 is upperRight
-    cornerNumber= 90 * (cornerNumber % 4) + 45
+    cornerNumber= (pi/2) * (cornerNumber % 4) + (pi/4)
 
-    cx = x + len * cos(Trig.degToRad(angle + cornerNumber))
-    cy = y + len * sin(Trig.degToRad(angle + cornerNumber))
+    cx = x + len * cos(angle + cornerNumber)
+    cy = y + len * sin(angle + cornerNumber)
 
     return cx,cy
 
@@ -53,21 +53,29 @@ def getSides(x, y, angle, sideNumber):
     len = getSize()/2
 
     # 0 is up, 1 is left, 2 is down and 3 is right
-    sideNumber = 90 * (sideNumber % 4)
+    sideNumber = (pi/2) * (sideNumber % 4)
 
-    cx = x + len * cos(Trig.degToRad(angle + sideNumber))
-    cy = y + len * sin(Trig.degToRad(angle + sideNumber))
+    cx = x + len * cos(angle + sideNumber)
+    cy = y + len * sin(angle + sideNumber)
 
     return cx, cy
 
 def getBoth(gx,gy,angle,number):
     if number % 2 == 0:
+        number/=2
         return getSides(gx,gy,angle,number)
     else:
+        number-=1
+        number/=2
         return getCorners(gx,gy,angle,number)
 
 
 def getSize():
-    #got from differential-drive
-    #return 0.40000000596046448
     return 0.6
+
+def getActualSize():
+    return 0.40000000596046448
+
+if __name__ == '__main__':
+    x,y=getPosition()
+    print "x %.3f, y %.3f" % (x,y)
