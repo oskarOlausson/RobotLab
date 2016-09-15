@@ -21,3 +21,9 @@ class Path:
 
     def length(self):
         return len(self.path)
+
+
+if __name__ == '__main__':
+    p = Path("Path-around-table.json")
+    x,y = p.position(62)
+    print "x %.3f, y %.3f" % (x,y)

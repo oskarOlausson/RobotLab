@@ -65,6 +65,31 @@ class IsOddTests(unittest.TestCase):
         self.failUnlessAlmostEqual(cx, expectedX)
         self.failUnlessAlmostEqual(cy, expectedY)
 
+    def testAngleDifferenceDirection(self):
+        #positive direction
+        startAngles =       [10,  20,  10, -10,  0,   0]
+        endAngles =         [20,  10, -10,  10,  360, 0]
+        answersPositive =   [10,  350, 340, 20,  0,   0]
+        answersNegative =   [350, 10,  20,  340, 0,   0]
+
+        for i in range(0,5):
+            startAngle=Trig.degToRad(startAngles[i])
+            endAngle=Trig.degToRad(endAngles[i])
+            angle=Trig.radToDeg(Trig.angleDifferenceDirection(startAngle,endAngle,1))
+            self.assertAlmostEqual(angle,answersPositive[i])
+            angle=Trig.radToDeg(Trig.angleDifferenceDirection(startAngle,endAngle,-1))
+            self.assertAlmostEqual(angle, answersNegative[i])
+
+
+
+
+
+
+
+
+
+
+
     def testSign(self):
         self.failUnless(Trig.sign(5.2)  ==  1)
         self.failUnless(Trig.sign(0.0)  ==  0)

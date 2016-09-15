@@ -40,5 +40,14 @@ def angleDifference(angle,goalAngle):
     a = ((a + pi) % (pi*2)) - pi
     return abs(a)
 
+def angleDifferenceDirection(startAngle, endAngle,turnDir):
+    startAngle %= 2 * pi
+    endAngle %= 2 * pi
+    diff = (endAngle-startAngle) % (2 * pi)
+
+    if turnDir==1: return diff
+    else: return (2*pi-diff) % (2*pi)
+
+
 if __name__ == "__main__":
-    a=4
+    print "%d" % (-80 %360)

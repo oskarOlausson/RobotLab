@@ -78,9 +78,9 @@ def purePursuit(x,y,goalx,goaly,angle,linearPreference):
     return angularSpeed,linearSpeed
 
 def robotCanBe(x,y,gx,gy,angle):
-    for i in range(0,8):
-        cx,cy= RobotState.getBoth(gx, gy, angle, i)
-        if not robotCanSee(x, y, cx, cy, RobotState.getDirection()): return False
+    for i in range(0,4):
+        cx,cy= RobotState.getCorners(gx, gy, angle, i)
+        if not robotCanSee(x, y, cx, cy, angle): return False
     return True
 
 def choosePoint(x,y,currentIndex,pathHandler):
@@ -100,17 +100,20 @@ def choosePoint(x,y,currentIndex,pathHandler):
 
     return index
 
-def safeTravel(x,y,angle,linearPreference,currentIndex,pathHandler):
+def safeTravel(x,y,angle,currentIndex,pathHandler):
 
     index = currentIndex
     loop = True
 
     while(loop):
         goalx, goaly = pathHandler.position(index)
-        ang, lin = purePursuit(x,y,goalx,goaly,angle,linearPreference)
-        radius = lin/ang
-        loop = collisionAlongPath(x,y,goalx,goaly,radius)
-        if loop: index-=1
+        dist = Trig.distanceToPoint(x,y,goalx,goaly)
+        vb = Trig.angleToPoint(x,y,goalx,goaly)-angle
+
+        radius = dist / (2 * (sin(vb)))
+
+        loop = collisionAlongPath(x,y,angle,goalx,goaly,radius)
+        if loop: index=max(0,index-5)
 
     return index
 
@@ -124,53 +127,56 @@ def inGoal(x,y,pathHandler):
     return Trig.distanceToPoint(x, y, *pathHandler.getLast()) < 1
 
 def mainPure(linearPreference, pathHandler):
-    lookAhead = 1
     currentIndex = 0
 
     while (True):
         x, y = RobotState.getPosition()
         angle = RobotState.getDirection()
 
+        #can we see
         currentIndex = choosePoint(x, y, currentIndex, pathHandler)
+        print "first index %.3f" % currentIndex
 
-        currentIndex = safeTravel(x,y,angle,linearPreference,currentIndex,pathHandler)
+        #can we travel
+        start = time.time()
+        currentIndex = safeTravel(x,y,angle,currentIndex,pathHandler)
+
+
+        stop = time.time()
+        print "second function took %.3f seconds" % (stop-start)
         goalx, goaly = pathHandler.position(currentIndex)
-        ang, lin = purePursuit(x,y,goalx,goaly,angle,linearPreference)
+        dist = Trig.distanceToPoint(x, y, goalx, goaly)
+        print "index %d, distance %.3f\n" % (currentIndex, dist)
 
+        ang, lin = purePursuit(x,y,goalx,goaly,angle,linearPreference)
         postSpeed(ang, lin)
 
-def collisionAlongPath(x,y,goalx,goaly,r):
+def collisionAlongPath(x,y,robotAngle,goalx,goaly,r):
     #if the path is fairly straight, just watch the end position
-    if abs(r)>10: return robotCanBe(x, y, goalx, goaly, RobotState.getDirection())
-    ret = False
-    robotAngle = RobotState.getDirection()
+    if abs(r)>10: return robotCanBe(x, y, goalx, goaly, robotAngle)
+
     cx, cy = Trig.getCenterOfTurn(r, robotAngle, x, y)
 
     centerToRobot = Trig.angleToPoint(cx, cy, x, y)
     centerToGoal  = Trig.angleToPoint(cx, cy, goalx, goaly)
 
-    angleDiff = Trig.angleDifference(centerToRobot, centerToGoal)
+    turnDir = Trig.sign(r)
+    angleDiff = Trig.angleDifferenceDirection(centerToRobot, centerToGoal,turnDir)
 
-
-    turnDir = turnDirection(centerToRobot,centerToGoal)
 
     nrOfAngles=5
     #print "---Session---"
     for i in range(0,nrOfAngles):
 
-        index= centerToRobot + angleDiff * (float(i+1)/nrOfAngles) * turnDir
-        gx=cx+cos(index)*abs(r)
-        gy=cy+sin(index)*abs(r)
-
-        #print "\t(%.3f, %.3f)" % (gx,gy)
-
+        index = centerToRobot + angleDiff * (float(i+1)/nrOfAngles) * turnDir
+        gx = cx+cos(index)*abs(r)
+        gy = cy+sin(index)*abs(r)
+        #print "cx %.3f, cy %.3f" % (gx,gy)
         angleAlongCircle = index + (pi/2)*Trig.sign(r)
 
-        check=robotCanBe(x, y, gx, gy, angleAlongCircle)
+        if not robotCanBe(x, y, gx, gy, angleAlongCircle): return True
 
-        if not check: ret=True
-
-    return ret
+    return False
 
 def mainOwn():
     lookAhead = 1
@@ -258,18 +264,34 @@ def mainCheckVisability():
 
     print "linTest: %.3f, rTest: %.3f" % (linTest,rTest)
 
+
 if __name__ == '__main__':
+
     str=sys.argv
     pathName=sys.argv[1]
     linearPreference=float(sys.argv[2])
 
     pathHandler = path.Path(pathName)
+    x,y=pathHandler.position(62)
+    print "position x,y = %.3f, %.3f" % (x,y)
 
     if linearPreference>1 or linearPreference<=0:
         print "Unreasonable speed preference set, please set within (>0 to 1), you have set it to %.3f" % linearPreference
         exit(3)
 
     mainPure(linearPreference,pathHandler)
+
+def noMain():
+    x, y = 0, 0
+    gx, gy = -1, 1
+    robotAngle = 0
+    dist = Trig.distanceToPoint(x, y, gx, gy)
+    angle = Trig.angleToPoint(x, y, gx, gy)
+    vb = angle - robotAngle
+
+    radius = dist / (2 * (sin(vb)))
+    print "r: %.3f" % radius
+    collisionAlongPath(x, y, robotAngle, gx, gy, radius)
 
 
 
