@@ -144,7 +144,7 @@ def mainPure(linearPreference, pathHandler):
 
         goalx, goaly = pathHandler.position(currentIndex)
         dist = Trig.distanceToPoint(x, y, goalx, goaly)
-        print "index %d, x%.3f, y %.3f, dist %.3f\n" % (currentIndex, goalx,goaly.dist)
+        print "index %d, x%.3f, y %.3f, dist %.3f\n" % (currentIndex, goalx,goaly,dist)
 
         ang, lin = purePursuit(x,y,goalx,goaly,angle,linearPreference)
         postSpeed(ang, lin)
