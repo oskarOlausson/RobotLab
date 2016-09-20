@@ -144,6 +144,11 @@ def getBearing():
 
 
 if __name__ == '__main__':
+    _=0
+
+    print "all done"
+
+def rest():
     print 'Sending commands to MRDS server', MRDS_URL
 
     """

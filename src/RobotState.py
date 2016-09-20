@@ -2,10 +2,11 @@
 File that handles  the states of the robot
 """
 
-from math import sin,cos,pi
+from math import sin,cos,pi,sqrt
 
 import Postman
 import Trig
+import RobotState
 
 
 #returns the robots direction in degrees
@@ -36,9 +37,15 @@ if __name__ == '__main__':
     print "angular %.3f" % a
     print "linear %.3f" % l
 
+def getLaserIndex(laser,index):
+    if index==-1:
+        #returns the length of the robot
+        return sqrt(2)*(getSize()/2)
+    else: return laser['Echoes'][index]
+
 
 def getCorners(x, y, angle, cornerNumber):
-    len = Trig.distanceToPoint(0, 0, getSize() / 2, getSize() / 2)
+    len = getSize() / sqrt(2)
 
     #0 is upperLeft, 1 is lowerLeft, 2 is lowerRight and 3 is upperRight
     cornerNumber= (pi/2) * (cornerNumber % 4) + (pi/4)

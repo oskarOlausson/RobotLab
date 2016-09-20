@@ -2,6 +2,9 @@
 File that handles trigonomics math
 """
 from math import sin, cos, pi, atan2, sqrt
+from Postman import getLaser, postSpeed
+import RobotState
+import time
 
 def sign(a):
     return int(a>0) - int(a<0)
@@ -17,7 +20,13 @@ def degToRad(deg):
 #takes an angle (in degrees) and returns the laser that points in that direction
 #...hopefully (in the test it seems to work
 def radToLaser(rad, robotDirection):
-    laserAngle = int(round(radToDeg(rad)+135-radToDeg(robotDirection)))
+    #direction according to robot
+    rad -= robotDirection
+    rad %= 2*pi
+    if rad>pi: rad -= 2*pi
+    #angle between -pi and pi
+    laserAngle = int(round(radToDeg(rad)+135))
+    if laserAngle>270 or laserAngle<0: laserAngle=-1
     return laserAngle
 
 def getCenterOfTurn(r, robotAngle, x, y):
@@ -50,4 +59,5 @@ def angleDifferenceDirection(startAngle, endAngle,turnDir):
 
 
 if __name__ == "__main__":
-    print "%d" % (-80 %360)
+    _=0
+

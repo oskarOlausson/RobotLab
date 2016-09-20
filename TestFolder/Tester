@@ -11,6 +11,21 @@ def IsOdd(n):
 # Here's our "unit tests".
 class IsOddTests(unittest.TestCase):
 
+    def testPurePursuit(self):
+        x, y = 1, 1
+        goalx, goaly = -4, -4
+        linearPreference = 0.5
+        angle = Trig.degToRad(-90)
+
+        #dist = sqrt(50)
+        #yprim = -5
+        #gammay = 2*yprim / dist^2 = -10 / 50 = -1/5
+        #angularSpeed = gammay * linearPreference = -1/5 * .5 = 1/10
+        answer = -float(1)/float(10)
+
+        ang,_ = RobotMove.purePursuit(x,y,goalx,goaly,angle,linearPreference)
+        self.failUnlessAlmostEqual(answer,ang)
+
     def testCornersEasy(self):
         x,y=0,0
         angle=0
@@ -53,6 +68,18 @@ class IsOddTests(unittest.TestCase):
 
         self.failIf(answer!=90)
 
+    def testLaserHard(self):
+        robot=Trig.degToRad(135)
+        for i in range(0,270,10):
+            rad = Trig.degToRad(i)
+            self.failUnlessAlmostEqual(i,Trig.radToLaser(rad,robot))
+
+    def testLaserFail(self):
+        robot=Trig.degToRad(135)
+        for i in range(271,359,10):
+            rad = Trig.degToRad(i)
+            self.failUnless(Trig.radToLaser(rad,robot),-1)
+
     def testCenterOfTurn(self):
         #angularSpeed is positive
         r = -sqrt(2)
@@ -89,16 +116,6 @@ class IsOddTests(unittest.TestCase):
             self.assertAlmostEqual(angle,answersPositive[i])
             angle=Trig.radToDeg(Trig.angleDifferenceDirection(startAngle,endAngle,-1))
             self.assertAlmostEqual(angle, answersNegative[i])
-
-
-
-
-
-
-
-
-
-
 
     def testSign(self):
         self.failUnless(Trig.sign(5.2)  ==  1)
