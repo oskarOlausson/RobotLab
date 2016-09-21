@@ -22,6 +22,8 @@ class Path:
     def position(self, index):
         return self.path[index]['Pose']['Position']['X'], self.path[index]['Pose']['Position']['Y']
 
+
+
     def length(self):
         return len(self.path)
 

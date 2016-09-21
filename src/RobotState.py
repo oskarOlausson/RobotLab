@@ -6,8 +6,6 @@ from math import sin,cos,pi,sqrt
 
 import Postman
 import Trig
-import RobotState
-
 
 #returns the robots direction in degrees
 def getDirection():
@@ -31,17 +29,25 @@ def getPosition():
     y = data['Pose']['Position']['Y']
     return x,y
 
+def getLaserLength(laser, angle, robotAngle):
 
-if __name__ == '__main__':
-    a,l=getSpeed()
-    print "angular %.3f" % a
-    print "linear %.3f" % l
+    index = Trig.radToLaserFloat(angle, robotAngle)
+    leftIndex = int(index)
+    rightIndex = leftIndex + 1
 
-def getLaserIndex(laser,index):
-    if index==-1:
-        #returns the length of the robot
-        return sqrt(2)*(getSize()/2)
-    else: return laser['Echoes'][index]
+    if (rightIndex<0 or leftIndex>270): dist = sqrt(2)*(getSize()/2)
+    elif leftIndex==270: dist = laser['Echoes'][270]
+    elif rightIndex==0: dist = laser['Echoes'][0]
+    else:
+        diffL = abs(index-leftIndex)
+        diffR = abs(index-rightIndex)
+
+        distL = laser['Echoes'][leftIndex]
+        distR = laser['Echoes'][rightIndex]
+
+        dist = (distL*diffR) + (distR*diffL)
+
+    return dist
 
 
 def getCorners(x, y, angle, cornerNumber):
@@ -78,11 +84,15 @@ def getBoth(gx,gy,angle,number):
 
 
 def getSize():
-    return 0.6
+    return 0.8
 
 def getActualSize():
     return 0.40000000596046448
 
 if __name__ == '__main__':
-    x,y=getPosition()
-    print "x %.3f, y %.3f" % (x,y)
+    getLaserLength(None,0,0)
+
+
+def getLaserLengthFromIndex(laser, index):
+    if (index<0 or index>270): return sqrt(2)*(getSize()/2)
+    else: return laser['Echoes'][index]

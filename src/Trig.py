@@ -20,12 +20,15 @@ def degToRad(deg):
 #takes an angle (in degrees) and returns the laser that points in that direction
 #...hopefully (in the test it seems to work
 def radToLaser(rad, robotDirection):
+    return int(round(radToLaserFloat(rad,robotDirection)))
+
+def radToLaserFloat(rad, robotDirection):
     #direction according to robot
     rad -= robotDirection
     rad %= 2*pi
     if rad>pi: rad -= 2*pi
     #angle between -pi and pi
-    laserAngle = int(round(radToDeg(rad)+135))
+    laserAngle = radToDeg(rad)+135
     if laserAngle>270 or laserAngle<0: laserAngle=-1
     return laserAngle
 
@@ -55,9 +58,9 @@ def angleDifferenceDirection(startAngle, endAngle,turnDir):
     diff = (endAngle-startAngle) % (2 * pi)
 
     if turnDir==1: return diff
-    else: return (2*pi-diff) % (2*pi)
+    else: return -((2*pi-diff) % (2*pi))
 
 
 if __name__ == "__main__":
-    _=0
+    print radToDeg(angleDifferenceDirection(degToRad(90),degToRad(0),-1))
 
