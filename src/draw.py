@@ -73,6 +73,8 @@ class Example(Frame):
         self.canvas.create_line(self.gy-1, self.gx-1, self.gy+1, self.gx+1, fill="purple", width = 2)
         self.canvas.create_line(self.gy+1, self.gx-1, self.gy-1, self.gx+1, fill="purple", width = 2)
 
+        self.canvas.create_line(self.y,self.x, self.gy, self.gx, fill="pink", width = 3)
+
         self.prevx=self.x
         self.prevy=self.y
         self.prevgx = self.gx
@@ -109,6 +111,3 @@ def main(pathHandler,laser):
     root.mainloop()
     return ex
 
-
-if __name__ == '__main__':
-    main(pathHandler,laser)

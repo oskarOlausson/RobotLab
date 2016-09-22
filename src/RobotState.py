@@ -30,7 +30,6 @@ def getPosition():
     return x,y
 
 def getLaserLength(laser, angle, robotAngle):
-
     index = Trig.radToLaserFloat(angle, robotAngle)
     leftIndex = int(index)
     rightIndex = leftIndex + 1

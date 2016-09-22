@@ -90,13 +90,12 @@ def robotCanBe(x, y, gx, gy, robotAngle, goalAngle, laser):
 """
 Chooses the points the robot will aim for
 """
-def safeTravel(x, y, angle, currentIndex, lookAhead, pathHandler, laser):
+def safeTravel(x, y, angle, currentIndex, pathHandler, laser):
 
-    goalx, goaly = pathHandler.position(currentIndex)
     loop = True
 
     # while we can  to a point, move forward
-    while loop and currentIndex <= pathHandler.length() - 1:
+    while loop and currentIndex < pathHandler.length() - 1:
         goalx, goaly = pathHandler.position(currentIndex)
         loop = robotCanSee(x,y,goalx,goaly,angle,laser)
         if loop: currentIndex += 1
@@ -106,7 +105,7 @@ def safeTravel(x, y, angle, currentIndex, lookAhead, pathHandler, laser):
     if currentIndex == pathHandler.length(): currentIndex -= 1
 
     # while we cant go to a point, try a point closer
-    while (loop and currentIndex >= 0):
+    while (loop and currentIndex > 0):
         goalx, goaly = pathHandler.position(currentIndex)
         dist = Trig.distanceToPoint(x, y, goalx, goaly)
         vb = Trig.angleToPoint(x, y, goalx, goaly) - angle
@@ -134,13 +133,6 @@ def defineGoalTreshHold(pathHandler):
     return index + 1
 
 
-def calcTurnSpeed(angle, goalAngle, timeBetween):
-    leftToTurn = Trig.angleDifference(angle, goalAngle)
-    angleSpeed = leftToTurn / timeBetween
-    angleSpeed = min(1, angleSpeed)
-    return angleSpeed
-
-
 def inGoal(x, y, currentIndex, threashHold, pathHandler):
     goalx, goaly = pathHandler.getLast()
     return Trig.distanceToPoint(x, y, goalx, goaly) < 1 and currentIndex > threashHold
@@ -161,58 +153,29 @@ def collisionAlongPath(x, y, goalx, goaly, robotAngle, r, laser):
     #The difference in angle between centerToRobot and centerToGoal
     angleDiff = Trig.angleDifferenceDirection(centerToRobot, centerToGoal, turnDir)
 
-    canBeCount = int (abs(r*angleDiff/RobotState.getActualSize()))
-    canBeCount*=2
+    maxCount = round (r*angleDiff/RobotState.getActualSize())
+    canBeCount = maxCount
 
     while (canBeCount > 0):
 
-        checkAngle = centerToRobot + angleDiff / canBeCount
+        checkAngle = centerToRobot + angleDiff*(float(canBeCount)/float(maxCount))
 
-        robotAngle = checkAngle + (pi / 2) * turnDir
+        checkRobotAngle = checkAngle + (pi / 2) * turnDir
         checkX = cx + cos(checkAngle) * abs(r)
         checkY = cy + sin(checkAngle) * abs(r)
 
-        if not robotCanBe(x, y, checkX, checkY, robotAngle, robotAngle, laser): return True
+        if not robotCanBe(x, y, checkX, checkY, robotAngle, checkRobotAngle, laser): return True
 
         canBeCount -=1
 
     return False
-    """
-    #Check if we can be at mid-point
-    midRobotAngle = midAngle + (pi / 2) * turnDir
-    canBeMid = robotCanBe(x,y,midX,midY,robotAngle, midRobotAngle, laser)
-
-    #Check if we can be at end-point
-    endRobotAngle = centerToGoal + (pi / 2) * turnDir
-    canBeEnd = robotCanBe(x, y, goalx, goaly, robotAngle, endRobotAngle, laser)
-
-    return not canBeMid or not canBeEnd
-    """
-
 
 def mainPure(linearPreference, pathHandler, laser):
 
     threashHold = defineGoalTreshHold(pathHandler)
     currentIndex = 0
-
-    x, y = RobotState.getPosition()
-    goalx, goaly = pathHandler.position(currentIndex)
-    angle = RobotState.getDirection()
-
-    if not robotCanSee(x,y,goalx,goaly,angle,getLaser()):
-        "choose closest index"
-        distanceToPoint = 100000
-        index=pathHandler.length()-1
-        while (index>0):
-            px,py = pathHandler.position(index)
-            newDistanceToPoint = Trig.distanceToPoint(x,y,px,py)
-            if(newDistanceToPoint < distanceToPoint):
-                distanceToPoint = newDistanceToPoint
-                currentIndex=index
-            index-=1
-
-    goalx, goaly = pathHandler.position(currentIndex)
-    goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
+    goalx,goaly = 0,0
+    goalAngle = 0
 
     start = time.time()
     sleepy = 0.1
@@ -221,7 +184,8 @@ def mainPure(linearPreference, pathHandler, laser):
     x, y = RobotState.getPosition()
     okToGo = True
     startOfSimulation = time.time()
-    lookAhead = 1.5
+
+    #TODO
     # assuming straight forward rather than assume standning still
     # postSpeed(0,1)
 
@@ -236,24 +200,29 @@ def mainPure(linearPreference, pathHandler, laser):
         laser.updateLaserScan()
         laserScan = laser.getLaserScan()
 
-        angleDifference = Trig.angleDifference(angle, goalAngle)
-
         # can we see
         if okToGo:
-            currentIndex = safeTravel(x, y, angle, currentIndex, lookAhead, pathHandler, laserScan)
+            currentIndex = safeTravel(x, y, angle, currentIndex, pathHandler, laserScan)
             pathHandler.setCurrentIndex(currentIndex)
 
             goalx, goaly = pathHandler.position(currentIndex)
             goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
 
+        angleDifference = Trig.angleDifference(angle, goalAngle)
+
         if angleDifference < (pi / 2) and okToGo:
             ang, lin = purePursuit(x, y, goalx, goaly, angle, linearPreference)
+            #TODO, if linear distance is shorter and clear from obstacles,
+            #do that
+
         else:
             ang = turnDirection(angle, goalAngle) * 2 * angleDifference / (pi / 2)
             lin = 0
             okToGo = angleDifference < Trig.degToRad(20)
 
         print "index is %d" % currentIndex
+
+
 
         postSpeed(ang, lin)
         end = time.time()
@@ -265,42 +234,17 @@ def mainPure(linearPreference, pathHandler, laser):
 
     print "The robot took %.3f seconds to finish the course" % (timeTook)
 
-
-def mainOwn(pathHandler):
-    currentIndex = 0
-    lookAhead = 1
-
-    while (True):
-        x, y = RobotState.getPosition()
-        angle = RobotState.getDirection()
-
-        currentIndex = choosePoint(x, y, currentIndex, angle, lookAhead, pathHandler)
-
-        goalx, goaly = pathHandler.position(currentIndex)
-        goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
-
-        angularSpeed = 2 * turnDirection(angle, goalAngle) * min(1, Trig.angleDifference(angle, goalAngle) / 180)
-
-        linearSpeed = 0.5 * (1 - Trig.angleDifference(angle, goalAngle) / 90)
-
-        postSpeed(angularSpeed, linearSpeed)
-        time.sleep(1 / 10)
-
 if __name__ == '__main__':
 
     pathName = sys.argv[1]
-    linearPreference = float(sys.argv[2])
 
     pathHandler = path.Path(pathName)
     laserHandler = laser.Laser(0,getLaser())
 
-    if linearPreference > 1 or linearPreference <= 0:
-        print "Unreasonable speed preference set, please set within (>0 to 1), you have set it to %.3f" % linearPreference
-        exit("Incorrect arguments")
-
     t = Thread(target=draw.main, args=(pathHandler,laserHandler))
     t.start()
-    mainPure(linearPreference, pathHandler, laserHandler)
+    #1 is prefered linear speed, we prefer maxsspeed
+    mainPure(1, pathHandler, laserHandler)
 
 # This test i think is a good indicator that the laser works now,
 # some times there is a diff when reading the angle upward cause the laser is not perfect and sometimes measures the
