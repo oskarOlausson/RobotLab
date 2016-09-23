@@ -81,9 +81,9 @@ def getBoth(gx,gy,angle,number):
         number/=2
         return getCorners(gx,gy,angle,number)
 
-
+#TODO this should probably be 0.8
 def getSize():
-    return 0.8
+    return 0.65
 
 def getActualSize():
     return 0.40000000596046448

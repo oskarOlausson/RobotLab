@@ -55,6 +55,10 @@ class Example(Frame):
             x=-x*20+300
             y=-y*20+300
             self.canvas.create_line(py,px,y,x, fill="red")
+
+            if i==986 or i==1048:
+                self.canvas.create_oval(y-2,x-2,y+2,x+2, fill="black")
+
             px,py=x,y
 
     def draw(self):
@@ -73,7 +77,7 @@ class Example(Frame):
         self.canvas.create_line(self.gy-1, self.gx-1, self.gy+1, self.gx+1, fill="purple", width = 2)
         self.canvas.create_line(self.gy+1, self.gx-1, self.gy-1, self.gx+1, fill="purple", width = 2)
 
-        self.canvas.create_line(self.y,self.x, self.gy, self.gx, fill="pink", width = 3)
+        #self.canvas.create_line(self.y,self.x, self.gy, self.gx, fill="pink", width = 3)
 
         self.prevx=self.x
         self.prevy=self.y

@@ -66,6 +66,20 @@ def purePursuit(x, y, goalx, goaly, angle, linearSpeed):
 
     return angularSpeed, linearSpeed
 
+def robotCanGo(x,y,gx,gy,angle,laser):
+    goalAngle = Trig.angleToPoint(x,y,gx,gy)
+    dist = Trig.distanceToPoint(x,y,gx,gy)
+
+    maxCount = round(dist/RobotState.getActualSize())
+    canBeCount = maxCount
+
+    while canBeCount>0:
+        nowDist = dist * float(canBeCount) / float(maxCount)
+        gx = cos(goalAngle) * nowDist
+        gy = sin(goalAngle) * nowDist
+        if not robotCanBe(x,y,gx,gy,angle,goalAngle,laser): return False
+
+    return True
 
 def robotCanBe(x, y, gx, gy, robotAngle, goalAngle, laser):
     # checks the front corners
@@ -212,17 +226,15 @@ def mainPure(linearPreference, pathHandler, laser):
 
         if angleDifference < (pi / 2) and okToGo:
             ang, lin = purePursuit(x, y, goalx, goaly, angle, linearPreference)
-            #TODO, if linear distance is shorter and clear from obstacles,
-            #do that
+
+            if angleDifference>(pi/3) and robotCanGo(x,y,goalx,goaly,angle,laserScan):
+                ang = Trig.sign(ang) * 2
 
         else:
             ang = turnDirection(angle, goalAngle) * 2 * angleDifference / (pi / 2)
             lin = 0
-            okToGo = angleDifference < Trig.degToRad(20)
-
-        print "index is %d" % currentIndex
-
-
+            print "\tang %.3f" % Trig.radToDeg(angleDifference)
+            okToGo = angleDifference < Trig.degToRad(10)
 
         postSpeed(ang, lin)
         end = time.time()
@@ -241,10 +253,13 @@ if __name__ == '__main__':
     pathHandler = path.Path(pathName)
     laserHandler = laser.Laser(0,getLaser())
 
-    t = Thread(target=draw.main, args=(pathHandler,laserHandler))
-    t.start()
+    #t = Thread(target=draw.main, args=(pathHandler,laserHandler))
+    #t.start()
+
     #1 is prefered linear speed, we prefer maxsspeed
     mainPure(1, pathHandler, laserHandler)
+
+
 
 # This test i think is a good indicator that the laser works now,
 # some times there is a diff when reading the angle upward cause the laser is not perfect and sometimes measures the
