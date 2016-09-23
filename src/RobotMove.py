@@ -9,7 +9,8 @@ from threading import Thread
 
 import RobotState
 import Trig
-import path, laser
+import path
+import laser
 from Postman import postSpeed, getLaser
 import draw
 
@@ -20,6 +21,11 @@ returns -1 for clockwise, 1 for counter-clockwise"""
 
 
 def turnDirection(currentAngle, goalAngle):
+    """
+        Returns what way is the closest to turn
+        1 for counter-clockwise
+        -1 for clockwise
+    """
     currentAngle %= 360
     goalAngle %= 360
     if currentAngle < goalAngle:
@@ -35,6 +41,9 @@ def turnDirection(currentAngle, goalAngle):
 
 
 def robotCanSee(x, y, goalx, goaly, robotDirection, laser):
+    """
+        returns true if the robot can see this position from where it is
+    """
     dist = Trig.distanceToPoint(x, y, goalx, goaly)
 
     if dist < RobotState.getActualSize() / 2: return True
@@ -47,6 +56,11 @@ def robotCanSee(x, y, goalx, goaly, robotDirection, laser):
 
 
 def purePursuit(x, y, goalx, goaly, angle, linearSpeed):
+    """
+        decides how to alter the angularspeed (and sometimes the linear speed)
+        to get to a specifed goalPoint
+        :param: linearSpeed, what default we use for the linear speed
+    """
     goalAngle = Trig.angleToPoint(x, y, goalx, goaly)
 
     dist = Trig.distanceToPoint(x, y, goalx, goaly)
@@ -67,6 +81,10 @@ def purePursuit(x, y, goalx, goaly, angle, linearSpeed):
     return angularSpeed, linearSpeed
 
 def robotCanGo(x,y,gx,gy,angle,laser):
+    """
+        returns if the robot can go to a point in a straight line
+        used to take shortcuts
+    """
     goalAngle = Trig.angleToPoint(x,y,gx,gy)
     dist = Trig.distanceToPoint(x,y,gx,gy)
 
@@ -82,7 +100,10 @@ def robotCanGo(x,y,gx,gy,angle,laser):
     return True
 
 def robotCanBe(x, y, gx, gy, robotAngle, goalAngle, laser):
-    # checks the front corners
+    """
+        returns if we can be at a certain position, checks the whole front of the robot
+        to make sure that it fits
+    """
 
     lx, ly = RobotState.getCorners(gx, gy ,goalAngle, 0)
     rx, ry = RobotState.getCorners(gx, gy, goalAngle, 3)
@@ -105,6 +126,9 @@ def robotCanBe(x, y, gx, gy, robotAngle, goalAngle, laser):
 Chooses the points the robot will aim for
 """
 def safeTravel(x, y, angle, currentIndex, pathHandler, laser):
+    """
+        Returns what index the robot should aim for by checking if it can go there by using pure pursuit
+    """
 
     loop = True
 
@@ -134,6 +158,10 @@ def safeTravel(x, y, angle, currentIndex, pathHandler, laser):
 
 
 def defineGoalTreshHold(pathHandler):
+    """
+        Define what index we must have seen to start checking if we are close enough to the goal
+        So we do not say we are in goal until we gone through the path
+    """
     goalIndex = pathHandler.length() - 1
     index = goalIndex - 1
 
@@ -148,11 +176,17 @@ def defineGoalTreshHold(pathHandler):
 
 
 def inGoal(x, y, currentIndex, threashHold, pathHandler):
+    """
+        returns if the robot is in goal
+    """
     goalx, goaly = pathHandler.getLast()
     return Trig.distanceToPoint(x, y, goalx, goaly) < 1 and currentIndex > threashHold
 
 
 def collisionAlongPath(x, y, goalx, goaly, robotAngle, r, laser):
+    """
+        Checks if the robot can see a pure-puruit-based path to the point specified
+    """
 
     #Center of circle of turn
     cx, cy = Trig.getCenterOfTurn(r, robotAngle, x, y)
@@ -184,8 +218,13 @@ def collisionAlongPath(x, y, goalx, goaly, robotAngle, r, laser):
 
     return False
 
-def mainPure(linearPreference, pathHandler, laser):
-
+def mainPure(linearPreference, pathHandler, laserHandler):
+    """
+        :param linearPreference:
+        :param pathHandler: the handler for the path
+        :param laserHandler: communicates with the draw-object about the laser
+        finishes when the robot has reached the goal
+    """
     threashHold = defineGoalTreshHold(pathHandler)
     currentIndex = 0
     goalx,goaly = 0,0
@@ -199,10 +238,6 @@ def mainPure(linearPreference, pathHandler, laser):
     okToGo = True
     startOfSimulation = time.time()
 
-    #TODO
-    # assuming straight forward rather than assume standning still
-    # postSpeed(0,1)
-
     while not inGoal(x, y, currentIndex, threashHold, pathHandler):
         time.sleep(max(0, sleepy - (end - start)))
         x, y = RobotState.getPosition()
@@ -210,9 +245,9 @@ def mainPure(linearPreference, pathHandler, laser):
         angle = RobotState.getDirection()
 
         #LASERSTUFF
-        laser.setDirection(angle)
-        laser.updateLaserScan()
-        laserScan = laser.getLaserScan()
+        laserHandler.setDirection(angle)
+        laserHandler.updateLaserScan()
+        laserScan = laserHandler.getLaserScan()
 
         # can we see
         if okToGo:
@@ -253,8 +288,8 @@ if __name__ == '__main__':
     pathHandler = path.Path(pathName)
     laserHandler = laser.Laser(0,getLaser())
 
-    #t = Thread(target=draw.main, args=(pathHandler,laserHandler))
-    #t.start()
+    t = Thread(target=draw.main, args=(pathHandler,laserHandler))
+    t.start()
 
     #1 is prefered linear speed, we prefer maxsspeed
     mainPure(1, pathHandler, laserHandler)

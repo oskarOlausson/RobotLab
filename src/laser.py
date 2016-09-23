@@ -1,9 +1,8 @@
 """
-File that handles paths and stuff
+File that passes laserinformation to the draw-part of our debugging
 """
 
 from Postman import getLaser
-
 
 class Laser:
 

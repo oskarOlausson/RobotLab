@@ -6,6 +6,10 @@ import json
 
 
 class Path:
+    """
+        Handles the path the robot should follow
+        Also passes information to the draw-object
+    """
 
     def __init__(self, pathName):
         self.pathName = pathName
@@ -14,6 +18,10 @@ class Path:
         self.x, self.y = 0,0
 
     def load(self, fileString):
+        """
+        :param fileString: the name of the file
+        :return: the path
+        """
         with open(fileString, 'r') as data_file:
             data = json.load(data_file)
         return data
@@ -22,9 +30,10 @@ class Path:
     def position(self, index):
         return self.path[index]['Pose']['Position']['X'], self.path[index]['Pose']['Position']['Y']
 
-
-
     def length(self):
+        """
+        :return: the number of poses in the path
+        """
         return len(self.path)
 
     def getCurrentIndex(self):
@@ -34,6 +43,9 @@ class Path:
         self.currentIndex = currentIndex
 
     def getRobotPosition(self):
+        """
+            passes the robots position to the draw-object
+        """
         return self.x, self.y
 
     def setRobotPosition(self,x,y):
@@ -41,10 +53,7 @@ class Path:
         self.y=y
 
     def getLast(self):
+        """
+        :return: the position of the last point on the path
+        """
         return self.position(self.length()-1)
-
-
-if __name__ == '__main__':
-    p = Path("Path-around-table.json")
-    x,y = p.position(62)
-    print "x %.3f, y %.3f" % (x,y)

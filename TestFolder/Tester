@@ -4,10 +4,6 @@ from math import cos,sin, pi, sqrt
 from src import Trig, RobotState, RobotMove
 
 
-# Here's our "unit".
-def IsOdd(n):
-    return n % 2 == 1
-
 # Here's our "unit tests".
 class IsOddTests(unittest.TestCase):
 
@@ -45,19 +41,6 @@ class IsOddTests(unittest.TestCase):
 
         expectedX = 7 + cos(7 * pi / 4 + angle) * len
         expectedY = 3 + sin(7 * pi / 4 + angle) * len
-
-        self.failUnlessAlmostEqual(cx, expectedX)
-        self.failUnlessAlmostEqual(cy, expectedY)
-
-    def testSideHard(self):
-        x, y = 7, 3
-        angle = 3.11
-        len = RobotState.getSize()/2
-
-        cx, cy = RobotState.getSides(x, y, angle, 3)
-
-        expectedX= 7 + cos(3*pi/2 + angle) * len
-        expectedY= 3 + sin(3*pi/2 + angle) * len
 
         self.failUnlessAlmostEqual(cx, expectedX)
         self.failUnlessAlmostEqual(cy, expectedY)
@@ -107,7 +90,7 @@ class IsOddTests(unittest.TestCase):
         startAngles =       [10,  20,  10, -10,  0,   0]
         endAngles =         [20,  10, -10,  10,  360, 0]
         answersPositive =   [10,  350, 340, 20,  0,   0]
-        answersNegative =   [350, 10,  20,  340, 0,   0]
+        answersNegative =   [-350, -10,  -20,  -340, -0,   -0]
 
         for i in range(0,5):
             startAngle=Trig.degToRad(startAngles[i])

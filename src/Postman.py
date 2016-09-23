@@ -1,9 +1,7 @@
 """
-Example demonstrating how to communicate with Microsoft Robotic Developer
-Studio 4 via the Lokarria http interface.
-
+Code from example-code
+used as communication with robot
 Author: Erik Billing (billing@cs.umu.se)
-
 Updated by Ola Ringdahl 204-09-11
 """
 
@@ -33,20 +31,6 @@ def postSpeed(angularSpeed, linearSpeed):
     else:
         raise UnexpectedResponse(response)
 
-
-def getSpeed():
-    mrds.request('GET', '/lokarria/differentialdrive')
-    response = mrds.getresponse()
-    if (response.status == 200):
-        allData = json.loads(response.read())
-
-        angularSpeed = allData["Feedback"]["CurrentAngularSpeed"]
-        linearSpeed = allData["Feedback"]["CurrentLinearSpeed"]
-        return angularSpeed, linearSpeed
-    else:
-        return response
-
-
 def getLaser():
     """Requests the current laser scan from the MRDS server and parses it into a dict"""
     mrds.request('GET', '/lokarria/laser/echoes')
@@ -56,37 +40,6 @@ def getLaser():
         return json.loads(laserData)
     else:
         return response
-
-
-def getLaserProperties():
-    """Requests the current laser scan from the MRDS server and parses it into a dict"""
-    mrds.request('GET', '/lokarria/laser/properties')
-    response = mrds.getresponse()
-    if (response.status == 200):
-        laserData = response.read()
-        return json.loads(laserData)
-    else:
-        return response
-
-
-def getLaserAngles():
-    """Requests the current laser properties from the MRDS server and parses it into a dict"""
-
-    mrds.request('GET', '/lokarria/laser/properties')
-    response = mrds.getresponse()
-    if (response.status == 200):
-        laserData = response.read()
-        properties = json.loads(laserData)
-        beamCount = int((properties['EndAngle'] - properties['StartAngle']) / properties['AngleIncrement'])
-        a = properties['StartAngle']  # +properties['AngleIncrement']
-        angles = []
-        while a <= properties['EndAngle']:
-            angles.append(a)
-            a += pi / 180  # properties['AngleIncrement']
-        # angles.append(properties['EndAngle']-properties['AngleIncrement']/2)
-        return angles
-    else:
-        raise UnexpectedResponse(response)
 
 def getPose():
     """Reads the current position and orientation from the MRDS"""
@@ -141,43 +94,3 @@ def qmult(q1, q2):
 def getBearing():
     """Returns the XY Orientation as a bearing unit vector"""
     return bearing(getPose()['Pose']['Orientation'])
-
-
-if __name__ == '__main__':
-    _=0
-
-    print "all done"
-
-def rest():
-    print 'Sending commands to MRDS server', MRDS_URL
-
-    """
-    try:
-        print 'Telling the robot to go straight ahead.'
-        response = postSpeed(0, 0.1)
-        print 'Waiting for a while...'
-        time.sleep(3)
-        print 'Telling the robot to go in a circle.'
-        response = postSpeed(0.4, 0.1)
-    except UnexpectedResponse, ex:
-        print 'Unexpected response from server when sending speed commands:', ex
-    """
-    try:
-        laser = getLaser()
-        laserAngles = getLaserAngles()
-        print 'The rightmost laser beam has angle %.3f deg from x-axis (straight forward) and distance %.3f meters.' % (
-            laserAngles[0] * 180 / pi, laser['Echoes'][0]
-        )
-        print 'Beam 1: %.3f Beam 269: %.3f Beam 270: %.3f' % (
-            laserAngles[0] * 180 / pi, laserAngles[269] * 180 / pi, laserAngles[270] * 180 / pi)
-    except UnexpectedResponse, ex:
-        print 'Unexpected response from server when reading laser data:', ex
-
-    try:
-        pose = getPose()
-        print 'Current position: ', pose['Pose']['Position']
-        for t in range(30):
-            print 'Current heading vector: X:{X:.3}, Y:{Y:.3}'.format(**getBearing())
-            time.sleep(1)
-    except UnexpectedResponse, ex:
-        print 'Unexpected response from server when reading position:', ex
