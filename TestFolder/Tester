@@ -1,0 +1,153 @@
+
+import unittest
+from math import cos,sin, pi, sqrt
+from src import Trig, RobotState, RobotMove
+
+
+# Here's our "unit".
+def IsOdd(n):
+    return n % 2 == 1
+
+# Here's our "unit tests".
+class IsOddTests(unittest.TestCase):
+
+    def testPurePursuit(self):
+        x, y = 1, 1
+        goalx, goaly = -4, -4
+        linearPreference = 0.5
+        angle = Trig.degToRad(-90)
+
+        #dist = sqrt(50)
+        #yprim = -5
+        #gammay = 2*yprim / dist^2 = -10 / 50 = -1/5
+        #angularSpeed = gammay * linearPreference = -1/5 * .5 = 1/10
+        answer = -float(1)/float(10)
+
+        ang,_ = RobotMove.purePursuit(x,y,goalx,goaly,angle,linearPreference)
+        self.failUnlessAlmostEqual(answer,ang)
+
+    def testCornersEasy(self):
+        x,y=0,0
+        angle=0
+        len = RobotState.getSize() / 2
+
+        cx,cy = RobotState.getCorners(x, y, angle, 0)
+
+        self.failUnlessAlmostEqual(cx,len)
+        self.failUnlessAlmostEqual(cy,len)
+
+    def testCornerHard(self):
+        x, y = 7, 3
+        angle = 3.11
+        len = RobotState.getSize() * (1 / sqrt(2))
+
+        cx, cy = RobotState.getCorners(x, y, angle, 3)
+
+        expectedX = 7 + cos(7 * pi / 4 + angle) * len
+        expectedY = 3 + sin(7 * pi / 4 + angle) * len
+
+        self.failUnlessAlmostEqual(cx, expectedX)
+        self.failUnlessAlmostEqual(cy, expectedY)
+
+    def testSideHard(self):
+        x, y = 7, 3
+        angle = 3.11
+        len = RobotState.getSize()/2
+
+        cx, cy = RobotState.getSides(x, y, angle, 3)
+
+        expectedX= 7 + cos(3*pi/2 + angle) * len
+        expectedY= 3 + sin(3*pi/2 + angle) * len
+
+        self.failUnlessAlmostEqual(cx, expectedX)
+        self.failUnlessAlmostEqual(cy, expectedY)
+
+    def testRadToLaser(self):
+        angle=pi/4
+        answer=Trig.radToLaser(pi/4,pi/2)
+
+        self.failIf(answer!=90)
+
+    def testLaserHard(self):
+        robot=Trig.degToRad(135)
+        for i in range(0,270,10):
+            rad = Trig.degToRad(i)
+            self.failUnlessAlmostEqual(i,Trig.radToLaser(rad,robot))
+
+    def testLaserFail(self):
+        robot=Trig.degToRad(135)
+        for i in range(271,359,10):
+            rad = Trig.degToRad(i)
+            self.failUnless(Trig.radToLaser(rad,robot),-1)
+
+    def testCenterOfTurn(self):
+        #angularSpeed is positive
+        r = -sqrt(2)
+        x = 5
+        y = 7
+        rAng=pi/4
+        cx,cy=Trig.getCenterOfTurn(r,rAng,x,y)
+        expectedX = 6
+        expectedY = 6
+        self.failUnlessAlmostEqual(cx, expectedX)
+        self.failUnlessAlmostEqual(cy, expectedY)
+
+    def testDistanceToPoint(self):
+        self.assertAlmostEqual(Trig.distanceToPoint(0,0,5,5),5*sqrt(2))
+        self.assertAlmostEqual(Trig.distanceToPoint(1, 1, 1, 5), 4)
+        self.assertAlmostEqual(Trig.distanceToPoint(5, 0, -5, 0), 10)
+
+    def testAngleToPoint(self):
+        self.assertAlmostEqual(Trig.angleToPoint(0,0,5,5),pi/4)
+        self.assertAlmostEqual(Trig.angleToPoint(0, 0, -5, 5), 5*pi/4)
+        self.assertAlmostEqual(Trig.angleToPoint(0, 0, -5, -5), 7 * pi / 4)
+
+    def testAngleDifferenceDirection(self):
+        #positive direction
+        startAngles =       [10,  20,  10, -10,  0,   0]
+        endAngles =         [20,  10, -10,  10,  360, 0]
+        answersPositive =   [10,  350, 340, 20,  0,   0]
+        answersNegative =   [350, 10,  20,  340, 0,   0]
+
+        for i in range(0,5):
+            startAngle=Trig.degToRad(startAngles[i])
+            endAngle=Trig.degToRad(endAngles[i])
+            angle=Trig.radToDeg(Trig.angleDifferenceDirection(startAngle,endAngle,1))
+            self.assertAlmostEqual(angle,answersPositive[i])
+            angle=Trig.radToDeg(Trig.angleDifferenceDirection(startAngle,endAngle,-1))
+            self.assertAlmostEqual(angle, answersNegative[i])
+
+    def testSign(self):
+        self.failUnless(Trig.sign(5.2)  ==  1)
+        self.failUnless(Trig.sign(0.0)  ==  0)
+        self.failUnless(Trig.sign(-7.3) == -1)
+
+    def testAngleToPoint(self):
+        x,y = 2,2
+        gx,gy = 4,4
+        self.failUnlessAlmostEqual(pi/4,Trig.angleToPoint(x,y,gx,gy))
+
+    def testAngleDifference(self):
+        deg1=Trig.degToRad(90)
+        deg2=Trig.degToRad(-80)
+        diff=Trig.angleDifference(deg1,deg2)
+        self.failUnlessAlmostEqual(Trig.radToDeg(diff),170)
+
+    def testTurnDirection(self):
+        self.failUnless(RobotMove.turnDirection(0, 10) == 1)
+        self.failUnless(RobotMove.turnDirection(0, -10) == -1)
+        self.failUnless(RobotMove.turnDirection(0, 350) == -1)
+        self.failUnless(RobotMove.turnDirection(0, 370) == 1)
+        self.failUnless(RobotMove.turnDirection(359, 0) == 1)
+        self.failUnless(RobotMove.turnDirection(10, 189) == 1)
+        self.failUnless(RobotMove.turnDirection(10, 191) == -1)
+        #IF
+        self.failIf(RobotMove.turnDirection(0, 180) == 0)
+        #we tested angle v to v, does not return 0 but in our code that is irrelevant
+
+
+def main():
+    unittest.main()
+
+if __name__ == '__main__':
+    main()

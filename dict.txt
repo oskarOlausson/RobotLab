@@ -1,0 +1,41 @@
+DICTIONAIRES
+Laserproperties
+{AngleIncrement0.017388889226511769,EndAngle2.3561944901923448,Pose{Orientation{W1,X0,Y0,Z0},Position{X0.15,Y0,Z0.2}},StartAngle-2.3561944901923448}
+•	AngleIncrement, the difference between the angles where the laser reads
+•	EndAngle, the leftmost angle
+•	StartAngle, the rightmost angle
+•	Pose (is a struct of position and orientation)
+o	Orientation (w,x,y,z)  is written as a quartion (or something) how the robot is turned
+o	Position (x,y,z), its place in the 3d-world (one of them should be about the same all the time, maybe it’s the z-axis)
+
+In all of the dictionaries where we only read information (which is all but the differentialDrive) the process of getting the information is almost the same.
+
+
+Differentialdrive
+{Command{TargetAngularSpeed0.4,TargetLinearSpeed0.1},Feedback{CurrentAngularSpeed0.40000003576278687,CurrentLinearSpeed0.10000000894069672,Enabledtrue},Properties{MaxAngularAcceleration6,MaxAngularDeceleration6,MaxAngularSpeed2,MaxLinearAcceleration2,MaxLinearDeceleration2,MaxLinearSpeed1,MinAngularSpeed-2,MinLinearSpeed-1,Width0.40000000596046448},Timestamp1876533}
+
+The interface for which we control the robots movement and reads the robots movements.
+The command-part is so we can tell it what to do and the Feedback-part is so we can read what the robot is doing right now.
+To alter the speed of the robot in python we make a json dump.
+This first part is connecting to  MRFS_URL='localhost50000'
+
+mrds = httplib.HTTPConnection(MRDS_URL)
+
+variableName=json.dumps({'TargetAngularSpeed' angularSpeed, 'TargetLinearSpeed' linearSpeed})
+
+•	TargetAngularSpeed is how fast the robot shall spin. (-2 to 2)
+•	TargetLinearSpeed is how fast it should drive (-1 to 1)
+
+And then we request 
+mrds.request('POST', 'lokarriadifferentialdrive', variableName, HEADERS)
+•	POST means we are telling it to do something rather than asking,
+•	lokarriadifferentialdrive is where we are sending the information
+•	Then we toss in the json-dump.
+•	Header är lite saker som ska vara med men de är alltid samma
+
+HEADERS = {Content-type applicationjson, Accept textjson}
+
+
+Localization
+{Pose{Orientation{W0.54049459587154369,X-5.7904618861502536E-07,Y-2.5009759641669353E-07,Z0.84134516767598921},Position{X0.5246891975402832,Y0.35894453525543213,Z0.07760012149810791}},Status4,Timestamp1991806}
+
