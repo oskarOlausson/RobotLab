@@ -15,7 +15,6 @@ class Path:
         self.pathName = pathName
         self.path = self.load(pathName)
         self.currentIndex = 0
-        self.x, self.y = 0,0
 
     def load(self, fileString):
         """
@@ -41,16 +40,6 @@ class Path:
 
     def setCurrentIndex(self, currentIndex):
         self.currentIndex = currentIndex
-
-    def getRobotPosition(self):
-        """
-            passes the robots position to the draw-object
-        """
-        return self.x, self.y
-
-    def setRobotPosition(self,x,y):
-        self.x=x
-        self.y=y
 
     def getLast(self):
         """

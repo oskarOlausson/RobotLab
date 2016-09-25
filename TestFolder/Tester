@@ -1,7 +1,7 @@
 
 import unittest
 from math import cos,sin, pi, sqrt
-from src import Trig, RobotState, RobotMove
+from src import Trig, robotState, robotMove
 
 
 # Here's our "unit tests".
@@ -19,15 +19,15 @@ class IsOddTests(unittest.TestCase):
         #angularSpeed = gammay * linearPreference = -1/5 * .5 = 1/10
         answer = -float(1)/float(10)
 
-        ang,_ = RobotMove.purePursuit(x,y,goalx,goaly,angle,linearPreference)
+        ang,_ = robotMove.purePursuit(x, y, goalx, goaly, angle, linearPreference)
         self.failUnlessAlmostEqual(answer,ang)
 
     def testCornersEasy(self):
         x,y=0,0
         angle=0
-        len = RobotState.getSize() / 2
+        len = robotState.getSize() / 2
 
-        cx,cy = RobotState.getCorners(x, y, angle, 0)
+        cx,cy = robotState.getCorners(x, y, angle, 0)
 
         self.failUnlessAlmostEqual(cx,len)
         self.failUnlessAlmostEqual(cy,len)
@@ -35,9 +35,9 @@ class IsOddTests(unittest.TestCase):
     def testCornerHard(self):
         x, y = 7, 3
         angle = 3.11
-        len = RobotState.getSize() * (1 / sqrt(2))
+        len = robotState.getSize() * (1 / sqrt(2))
 
-        cx, cy = RobotState.getCorners(x, y, angle, 3)
+        cx, cy = robotState.getCorners(x, y, angle, 3)
 
         expectedX = 7 + cos(7 * pi / 4 + angle) * len
         expectedY = 3 + sin(7 * pi / 4 + angle) * len
@@ -117,15 +117,15 @@ class IsOddTests(unittest.TestCase):
         self.failUnlessAlmostEqual(Trig.radToDeg(diff),170)
 
     def testTurnDirection(self):
-        self.failUnless(RobotMove.turnDirection(0, 10) == 1)
-        self.failUnless(RobotMove.turnDirection(0, -10) == -1)
-        self.failUnless(RobotMove.turnDirection(0, 350) == -1)
-        self.failUnless(RobotMove.turnDirection(0, 370) == 1)
-        self.failUnless(RobotMove.turnDirection(359, 0) == 1)
-        self.failUnless(RobotMove.turnDirection(10, 189) == 1)
-        self.failUnless(RobotMove.turnDirection(10, 191) == -1)
+        self.failUnless(robotMove.turnDirection(0, 10) == 1)
+        self.failUnless(robotMove.turnDirection(0, -10) == -1)
+        self.failUnless(robotMove.turnDirection(0, 350) == -1)
+        self.failUnless(robotMove.turnDirection(0, 370) == 1)
+        self.failUnless(robotMove.turnDirection(359, 0) == 1)
+        self.failUnless(robotMove.turnDirection(10, 189) == 1)
+        self.failUnless(robotMove.turnDirection(10, 191) == -1)
         #IF
-        self.failIf(RobotMove.turnDirection(0, 180) == 0)
+        self.failIf(robotMove.turnDirection(0, 180) == 0)
         #we tested angle v to v, does not return 0 but in our code that is irrelevant
 
 
